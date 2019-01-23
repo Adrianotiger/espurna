@@ -490,6 +490,8 @@ void wsSetup() {
     // CORS
     #ifdef WEB_REMOTE_DOMAIN
         DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", WEB_REMOTE_DOMAIN);
+        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET,PUT,POST,OPTIONS");
+        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
         DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials", "true");
     #endif
 

@@ -1,0 +1,238 @@
+<html>
+  <head>
+    <title>ON/OFF Widget</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="css/h801.css">
+    <script src='js/api.js?v=2'></script>
+    <style>
+      
+      .off
+      {
+        background:radial-gradient(#ff8000, #800000);
+      }
+      .off div::after
+      {
+        background:linear-gradient(to bottom, #C04100, #DB5C00);
+      }
+      
+      .on
+      {
+        background:radial-gradient(#c0ff80, #008000);
+      }
+      .on div::after
+      {
+        background:linear-gradient(to bottom, #5BBC3D, #8BDC5D);
+      }
+      
+      .disable
+      {
+        background:radial-gradient(#d0d0d0, #303030);
+      }
+      .disable div::after
+      {
+        background:linear-gradient(to bottom, #808080, #a0a0a0);
+      }
+      
+      .button
+      {
+        display:block;
+        position:fixed;
+        top:50%;
+        left:50%;
+        height:48vmin;
+        width:48vmin;
+        transform:translate(-50%, -50%);
+        border-radius:24vmin;
+        border-style:solid;
+        border-color:#000000;
+        border-width:0.5vmin;
+        box-shadow:0px 0px 3vmin 1vmin #a0a0a0;
+        cursor:pointer;
+        pointer-events:all;
+      }
+      .button span
+      {
+        display:block;
+        position:fixed;
+        top:50%;
+        left:50%;
+        height:18vmin;
+        width:4vmin;
+        transform:translate(-50%, -105%);
+        background-color:white;
+        border-radius:2vmin;
+      }
+      .button div
+      {
+        display:block;
+        position:fixed;
+        top:50%;
+        left:50%;
+        height:22vmin;
+        width:22vmin;
+        border-radius: 50%;
+        border-style:solid;
+        border-color:white;
+        border-width:4vmin;
+        transform:translate(-50%, -50%);
+      }
+      .button div::after
+      {
+        content: "";
+        display: block;
+        width: 10vmin;
+        height: 8vmin;
+        margin: -25% 0 0 6vmin;
+        border-radius:1vmin;
+      }
+      
+      .errormessage
+      {
+        content:"Error:";
+        display:none;
+        position:absolute;
+        bottom:0px;
+        left:0px;
+        width:100vw;
+        height:20vh;
+        font-size:8vh;
+        color:yellow;
+        background-color:#500000;
+        text-align:center;
+      }
+      
+      .lightname
+      {
+        display:block;
+        position:absolute;
+        bottom:0px;
+        left:5vw;
+        width:90vw;
+        height:10vh;
+        font-size:10vh;
+        color:#ffffcc;
+        text-align:center;
+        font-weight:bolder;
+        padding-bottom:1vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="button disable" onclick="powerOnOff();" id="button">
+      <div></div>
+      <span></span>
+    </div>
+    <div class="lightname" id='lightname'>
+    </div>
+    <div class="errormessage" id="debugdiv"></div>
+    
+    <script>
+      var isOn = null;
+      var log = "";
+      
+      var url_string = window.location.href; // "http://www.example.com/t.html?a=1&b=3&c=m2-m3-m4-m5"
+      var url = new URL(url_string);
+      var ip = url.searchParams.get("ip");
+      var key = url.searchParams.get("key");
+      var lname = url.searchParams.get("name");
+      if(!ip || ip.length < 8 || !key || key.length < 8)
+      {
+        document.getElementById("debugdiv").innerHTML = "Error: ip or key is missing!";
+        document.getElementById("debugdiv").style.display = "block";
+      }
+      else
+      {
+        API.GetData(ip, key, "relay/0", (a)=>{
+          var j = JSON.parse(a);
+          if(j.error)
+          {
+            document.getElementById("debugdiv").innerHTML = (j.error.length > 5 ? j.error : "Unable to find light IP");
+            document.getElementById("debugdiv").style.display = "block";
+            isOn = null;
+          }
+          else
+          {
+            isOn = (j["relay/0"] === 1);
+          }
+          updateButton();
+        });
+      }
+      
+      if(typeof lname !== 'undefined' && lname.length > 1)
+      {
+        document.getElementById("lightname").innerHTML = lname;
+        document.getElementById("lightname").style.display = "block";
+      }
+      
+      function powerOnOff()
+      {
+        if(isOn !== null)
+        {
+          API.SendOnOff(ip, key, !isOn, (a)=>{
+            var j = JSON.parse(a);
+            if(j.error)
+            {
+              document.getElementById("debugdiv").innerHTML = (j.error.length > 5 ? j.error : "Unable to find light IP");
+              document.getElementById("debugdiv").style.display = "block";
+              isOn = null;
+            }
+            else
+            {
+              isOn = (j["relay/0"] === 1);
+            }
+            updateButton();
+          });
+        }
+        else
+        {
+          document.getElementById("debugdiv").style.display = "none";
+          API.GetData(ip, key, "relay/0", (a)=>{
+            var j = JSON.parse(a);
+            if(j.error)
+            {
+              document.getElementById("debugdiv").innerHTML = (j.error.length > 5 ? j.error : "Unable to find light IP");
+              document.getElementById("debugdiv").style.display = "block";
+              isOn = null;
+            }
+            else
+            {
+              isOn = (j["relay/0"] === 1);
+              updateButton();
+            }
+          });
+        }
+      }
+      
+      function updateButton()
+      {
+        if(isOn !== null)
+        {
+          if(isOn)
+          {
+            document.getElementById("button").className = "button on";
+          }
+          else
+          {
+            document.getElementById("button").className = "button off";
+          }
+        }
+        else
+        {
+          document.getElementById("button").className = "button disable";
+        }
+      }
+      
+      updateButton();
+      
+      document.addEventListener("DOMContentLoaded", ()=>{
+        if(window.innerWidth > 200 && window.innerHeight > 300)
+        {
+          document.getElementById("lightname").innerHTML = "Redirecting...";
+          document.getElementById("lightname").style.display = "block";
+          console.log(url);
+          setTimeout(()=>{document.location = url.href.replace("widget.html", "index.html");}, 500);
+        }
+      });
+    </script>
+  </body>
+</html>

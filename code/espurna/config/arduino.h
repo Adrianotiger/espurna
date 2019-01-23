@@ -43,7 +43,7 @@
 //#define AITHINKER_AI_LIGHT
 //#define MAGICHOME_LED_CONTROLLER
 //#define MAGICHOME_LED_CONTROLLER_20
-//#define HUACANXING_H801
+#define HUACANXING_H801
 //#define HUACANXING_H802
 //#define JANGOE_WIFI_RELAY_NC
 //#define JANGOE_WIFI_RELAY_NO
@@ -118,7 +118,7 @@
 //--------------------------------------------------------------------------------
 
 //#define ALEXA_SUPPORT          0
-//#define API_SUPPORT            0
+#define API_SUPPORT            1
 //#define BROKER_SUPPORT         0
 //#define BUTTON_SUPPORT         0
 //#define DEBUG_SERIAL_SUPPORT   0
@@ -149,7 +149,7 @@
 //#define TERMINAL_SUPPORT       0
 //#define THINGSPEAK_SUPPORT     0
 //#define UART_MQTT_SUPPORT      1
-//#define WEB_SUPPORT            0
+#define WEB_SUPPORT            1
 
 //--------------------------------------------------------------------------------
 // Sensors (values below are non-default values)

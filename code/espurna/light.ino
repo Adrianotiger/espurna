@@ -33,10 +33,10 @@ typedef struct {
     unsigned char pin;
     bool reverse;
     bool state;
-    unsigned char inputValue;   // value that has been inputted
-    unsigned char value;        // normalized value including brightness
-    unsigned char target;       // target value
-    double current;             // transition value
+    unsigned int inputValue;   // value that has been inputted
+    unsigned int value;        // normalized value including brightness
+    unsigned int target;       // target value
+    double current;            // transition value
 } channel_t;
 std::vector<channel_t> _light_channel;
 
@@ -48,7 +48,7 @@ bool _light_use_white = false;
 bool _light_use_cct = false;
 bool _light_use_gamma = false;
 unsigned long _light_steps_left = 1;
-unsigned char _light_brightness = LIGHT_MAX_BRIGHTNESS;
+unsigned int _light_brightness = LIGHT_MAX_BRIGHTNESS;
 unsigned int _light_mireds = round((LIGHT_COLDWHITE_MIRED+LIGHT_WARMWHITE_MIRED)/2);
 
 #if LIGHT_PROVIDER == LIGHT_PROVIDER_MY92XX
@@ -96,7 +96,7 @@ void _generateBrightness() {
     if (_light_has_color && _light_use_white) {
 
         // Substract the common part from RGB channels and add it to white channel. So [250,150,50] -> [200,100,0,50]
-        unsigned char white = std::min(_light_channel[0].inputValue, std::min(_light_channel[1].inputValue, _light_channel[2].inputValue));
+        unsigned int white = std::min(_light_channel[0].inputValue, std::min(_light_channel[1].inputValue, _light_channel[2].inputValue));
         for (unsigned int i=0; i < 3; i++) {
             _light_channel[i].value = _light_channel[i].inputValue - white;
         }
@@ -120,9 +120,9 @@ void _generateBrightness() {
         }
 
         // Scale up to equal input values. So [250,150,50] -> [200,100,0,50] -> [250, 125, 0, 63]
-        unsigned char max_in = std::max(_light_channel[0].inputValue, std::max(_light_channel[1].inputValue, _light_channel[2].inputValue));
-        unsigned char max_out = std::max(std::max(_light_channel[0].value, _light_channel[1].value), std::max(_light_channel[2].value, _light_channel[3].value));
-        unsigned char channelSize = _light_use_cct ? 5 : 4;
+        unsigned int max_in = std::max(_light_channel[0].inputValue, std::max(_light_channel[1].inputValue, _light_channel[2].inputValue));
+        unsigned int max_out = std::max(std::max(_light_channel[0].value, _light_channel[1].value), std::max(_light_channel[2].value, _light_channel[3].value));
+        unsigned int channelSize = _light_use_cct ? 5 : 4;
 
         if (_light_use_cct) {
           max_out = std::max(max_out, _light_channel[4].value);
@@ -162,7 +162,7 @@ void _generateBrightness() {
 void _fromLong(unsigned long value, bool brightness) {
     if (brightness) {
         _setRGBInputValue((value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF);
-        _light_brightness = (value & 0xFF) * LIGHT_MAX_BRIGHTNESS / 255;
+        _light_brightness = (value & 0xFFF) * LIGHT_MAX_BRIGHTNESS / 4095;
     } else {
         _setRGBInputValue((value >> 16) & 0xFF, (value >> 8) & 0xFF, (value) & 0xFF);
     }
@@ -412,6 +412,8 @@ unsigned int _toPWM(unsigned long value, bool gamma, bool reverse) {
     if (gamma) value = _light_gamma_table[value];
     if (LIGHT_MAX_VALUE != LIGHT_LIMIT_PWM) value = map(value, 0, LIGHT_MAX_VALUE, 0, LIGHT_LIMIT_PWM);
     if (reverse) value = LIGHT_LIMIT_PWM - value;
+    if(value < LIGHT_MAX_VALUE / 50) 
+      value = value > LIGHT_MAX_VALUE / 100 ? LIGHT_MAX_VALUE / 50 : 0;
     return value;
 }
 
@@ -436,7 +438,6 @@ void _transition() {
             double difference = (double) (_light_channel[i].target - _light_channel[i].current) / (_light_steps_left + 1);
             _light_channel[i].current = _light_channel[i].current + difference;
         }
-
     }
 
 }
@@ -481,7 +482,7 @@ void _lightColorSave() {
 
 void _lightColorRestore() {
     for (unsigned int i=0; i < _light_channel.size(); i++) {
-        _light_channel[i].inputValue = getSetting("ch", i, i==0 ? 255 : 0).toInt();
+        _light_channel[i].inputValue = getSetting("ch", i, i==0 ? LIGHT_MAX_VALUE : 0).toInt();
     }
     _light_brightness = getSetting("brightness", LIGHT_MAX_BRIGHTNESS).toInt();
     _light_mireds = getSetting("mireds", _light_mireds).toInt();

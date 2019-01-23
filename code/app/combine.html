@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TODO supply a title</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="pako.js" ></script>
+    <script>
+      var fileDownloaded = 0;
+      var filesToDownload = 0;
+      var html = "";
+      var replaces = [];
+      function req(url, deb, func)
+      {
+        var req = new XMLHttpRequest();
+        req.open("GET", url, true); 
+
+        req.onreadystatechange = ()=>{if(req.readyState===4) {if(req.status===200) func(req.responseText); else deb.innerHTML += "ERROR on " + url + "<br>";}};
+        req.onerror = (e)=>{deb.innerHTML += "ERROR: " + e.toString() + "<br>"; };
+        req.ontimeout = ()=>{deb.innerHTML += "ERROR: Timeout on " + url + "<br>"; };
+
+        req.send(null);
+      }
+      function analyze()
+      {
+        var deb = document.getElementById('debug');
+        var url = document.getElementById('url').value;
+        deb.innerHTML = "<b>Analyze...</b><br>";
+        req(url, deb, (r)=>{
+          html = r;
+          fileDownloaded = 0;
+          replaces = [];
+          deb.innerHTML += "Got response (" + url + ", " + parseInt(r.length/1024) + "kb)<br>";
+          var css = getCSS(r);
+          deb.innerHTML += "Found " + css.length + " css files<br>";
+          var jss = getJSS(r);
+          deb.innerHTML += "Found " + jss.length + " js files<br>";
+          filesToDownload = css.length + jss.length;
+          deb.innerHTML += "download " + filesToDownload + " files...<br>";
+          for(let j in css)
+          {
+            var s1 = css[j].substring(css[j].indexOf("href=") + 5);
+            var ch = s1[0];
+            s1 = s1.substring(1, s1.indexOf(ch, 1));
+            req(s1, deb, (a)=>{
+              fileDownloaded++;
+              replaces.push({find:css[j], with:"<style>" + a + "</style>\n"});
+              if(fileDownloaded >= filesToDownload)
+                analyzeOver(deb);
+            });
+          }
+          for(let j in jss)
+          {
+            var s1 = jss[j].substring(jss[j].indexOf("src=") + 4);
+            var ch = s1[0];
+            s1 = s1.substring(1, s1.indexOf(ch, 1));
+            req(s1, deb, (a)=>{
+              fileDownloaded++;
+              var script = "<script>" + a + "<\/script>\n";
+              replaces.push({find:jss[j], with:script});
+              if(fileDownloaded >= filesToDownload)
+                analyzeOver(deb);
+            });
+          }
+        });
+      }
+      function analyzeOver(deb)
+      {
+        deb.innerHTML += "replacing strings...<br>";
+        console.log(replaces);
+        for(var j in replaces)
+        {
+          html = html.replace(replaces[j].find, replaces[j].with);
+        }
+        // remove comments
+        html = html.replace(/[;][^.]\/\/[^.\n]*/g, ";"); 
+        html = html.replace(/[ ]\/\/.*/g, "\n");  
+        html = html.replace(/\/\*([^*]|[\r\n]|(\*([^/]|[\r\n])))*\*\//g, " "); 
+        html = html.replace(/\n|\r/g, " ");
+        for(var j=0;j<50;j++)
+        {
+          html = html.replace(/  /g, " ");
+        }
+        deb.innerHTML += "zipping...<br>";
+        var zip = pako.gzip(html, {level:3});
+        console.log(zip);
+        var hex = "#define webui_app_len " + zip.length + "\nconst uint8_t webui_app[] PROGMEM = {\n";
+        for(var j=0;j<zip.length;j++)
+        {
+          hex += "0x" + Number(zip[j]).toString(16) + ",";
+          if((j % 16)===0 && j > 0) hex += "\n";
+        }
+        hex += "\n};";
+        
+        deb.innerHTML += "<textarea style='width:90vw;height:30vh;'>" + html + "</textarea>";
+        deb.innerHTML += "<textarea style='width:90vw;height:30vh;'>" + hex + "</textarea>";
+      }
+      function getCSS(html)
+      {
+        var css = [];
+        var reg = /\<link[^<.]*(\.css)[^\.]*\>/g;
+        var css = html.match(reg);
+        console.log(css);
+        return css;
+      }
+      function getJSS(html)
+      {
+        var jss = [];
+        var reg = /\<script[^\.]*(\.js)[^ \.]*/g;
+        var jss = html.match(reg);
+        return jss;
+      }
+      function getImages(html)
+      {
+        var imgs = [];
+        var reg = /\[\"|\'][^\.]*(\.png|\.jpg)[^\.]*\>/g;
+        var imgs = html.match(reg);
+        return imgs;
+      }
+    </script>
+  </head>
+  <body>
+    <div>Combine webpages to a single gz:</div>
+    <input type='url' value='http://fredy.goldengames.ch/h801/' id='url' />
+    <input type='button' value='Analyse and combine' onclick='analyze();' />
+    <div id='debug'>
+    </div>
+    
+  </body>
+</html>

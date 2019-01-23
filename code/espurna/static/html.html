@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang='DE-ch'>
+ <head> 
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+ <meta name="author" content="Adriano Petrucci">
+ <meta name="copyright" content="© Adriano Petrucci">
+ <meta name="robots" content="noindex,nofollow">
+ <meta name="topic" content="App">
+ 
+ <meta name="title" content="H801 Remote">
+ <title>H801 Remote</title>
+ <style>html
+{
+ width:99vw;
+ height:100vh;
+ background-color:black;
+}
+
+body
+{
+ width:100%;
+ height:100%;
+ margin:0px;
+ display:fixed;
+ background-color:black;
+ background:linear-gradient(to bottom, #101010, #000000);
+ color:#e0e000;
+ overflow:hidden;
+ pointer-events:none;
+ user-select:none;
+ font-family:verdana, sans-serif;
+ font-stretch:expanded;
+}
+
+.maindiv
+{
+ position:absolute;
+ top:2vh;
+ left:2vw;
+ background:linear-gradient(to bottom, #707070, #101010);
+ display:block;
+ width:96vw;height:90vh;
+ border-radius:10px;
+}
+
+.buttonDiv
+{
+ display:block;
+ width:9vh;
+ height:9vh;
+ box-shadow:0px 0px 5px 0px #000000; 
+ font-size:6vh;
+ padding:0px;
+ margin:3px;
+ text-align:center;
+ cursor:pointer;
+ float:right;
+ pointer-events:auto;
+}
+
+.buttonDiv:hover
+{
+ background-color: yellow;
+}
+
+.dialog
+{
+ width:80vw;
+ max-width:500px;
+ min-height:30vh;
+ max-height:70vh;
+ display:block;
+ background:linear-gradient(to bottom, #404040, #101010);
+ box-shadow:4px 4px 16px 8px #a1a1b1;
+ border-radius:20px;
+ border-style:ridge;
+ border-width:2px;
+ position:fixed;
+ padding-top:20px;
+ left:50vw;
+ top:50vh;
+ transform:translate(-50%, -50%);
+ text-align:center;
+ margin:0 auto;
+ overflow:auto;
+}
+
+.dialog span
+{
+ display:table-row;
+ font-size:120%;
+ display:block;
+ margin:5px;
+}
+
+.dialog input
+{
+ display:table-row;
+ font-size:120%;
+ width:300px;
+ max-width:60vw;
+ margin:0 auto;
+ margin-bottom:0.5vh;
+ pointer-events:auto;
+ border-radius:2vh;
+ background:linear-gradient(to bottom, #f1f1ff, #a1a1d1, #e1e1ee);
+ user-select:auto;
+}
+
+.debugdiv
+{
+ position:absolute;
+ border-radius:5px;
+ bottom:0px;
+ left:2vw;
+ font-size:80%;
+ background-color:#a0a0a0;
+ display:block;
+ width:90vw;
+ text-align:center;
+ height:2vh;
+ overflow:auto;
+ opacity:0.01;
+ color:black;
+ pointer-events:auto;
+ transition:all 0.5s ease-in-out;
+}
+
+.menu 
+{
+ width:60vw;
+ max-width:500px;
+ height:90vh;
+ top:2vh;
+ left:0vw;
+ transform:translate(-100%, 0%);
+ display:block;
+ position:fixed;
+ border-style:solid;
+ border-width:1px;
+ transition:all 0.5s ease-in-out;
+ overflow:visible;
+ background-color:#000000;
+ border-radius:20px;
+ text-align:center;
+ margin:0 auto;
+ pointer-events:auto;
+ z-index:200;
+}
+.menu:hover
+{
+ transform:translate(-5%, 0%);
+}
+
+.menu span
+{
+ display:block;
+ position:absolute;
+ width:6vmax;
+ height:7vmax;
+ right:0vw;
+ top:0vh;
+ padding-top:2vmax;
+ transform:translate(4vmax, 0vmax);
+ font-size:3vmax;
+ text-align:center;
+ border-radius:5px;
+ border-image:linear-gradient(to right, rgba(0,0,0,0), rgba(255,255,0,0.2));
+ border-image-slice:1;
+ border-style:solid;
+ border-width:1px;
+ background-color:rgba(0,0,0,0.5);
+}
+
+.menu:hover span
+{
+ background-color:rgba(0,0,0,1.0);
+}
+
+.menu em
+{
+ cursor:pointer;
+ font-size:110%;
+ width:50vw;
+ display:block;
+ max-width:400px;
+ margin:0 auto;
+ padding:5px;
+}
+
+.menu em:hover
+{
+ text-shadow:1px 1px 2px #ffffff;
+ color:#a0a0a0;
+}
+
+.edit_no
+{
+ display:none !important;
+}
+.edit_yes
+{
+ display:initial !important;
+}
+
+.expert_yes
+{
+ display:revert !important;
+}
+.expert_no
+{
+ display:none !important; 
+}</style>
+
+ <style>
+.onoffimg
+{
+ width:10vmax;
+ height:10vmax;
+ cursor:pointer;
+ position:absolute;
+ display:block;
+ left:50%;
+ bottom:1vh;
+ transform:translate(-50%, -50%);
+ filter:hue-rotate(320deg);
+ transition:all 0.5s ease-in-out;
+}
+
+.onoffimg:hover
+{
+ filter:hue-rotate(340deg) drop-shadow(0px 0px 20px #ffaaaa) brightness(130%);
+}
+
+.loader 
+{
+ position:absolute;
+ top:0vh;
+ right:5vh;
+ border: 0.5vh solid rgba(0,0,0,0.1); 
+ border-top: 0.8vh solid #54b8fb; 
+ border-radius: 50%;
+ width: 4vh;
+ height: 4vh;
+ box-shadow:0px 0px 2px 2px #505050;
+ opacity:0.0;
+ animation:spin 1s ease infinite;
+ transition:opacity 0.2s ease-in-out 0.1s;
+}
+
+@keyframes spin {
+ 0% { transform: scale(0.7) rotate(0deg); }
+ 100% { transform: scale(0.7) rotate(360deg); }
+} 
+
+.buttCtrl
+{
+ display:inline-block;
+ position:relative;
+ width:80vw;
+ height:5vh;
+ max-width:400px;
+ margin:0 auto;
+ cursor:pointer;
+ background:linear-gradient(to bottom, #808080, #202020);
+ border-image:linear-gradient(175deg, #fefe80, #a0a050);
+ border-image-slice:1;
+ border-width:2px;
+ border-style:solid;
+ transition: all 0.3s ease-in-out;
+ margin:1vh;
+ pointer-events:auto;
+}
+
+.buttCtrl:hover
+{
+ box-shadow:0px 0px 10px 2px #ffff80;
+ border-image:linear-gradient(175deg, #fff2aa, #baaa80);
+}
+
+.buttCtrl span
+{
+ display:table-cell;
+ position:relative;
+ width:80vw;
+ height:4.5vh;
+ max-width:400px;
+ color:#ffef00;
+ text-align:center;
+ vertical-align:middle;
+ font-size:2vh;
+ font-family:sans-serif;
+ font-weight:bolder;
+ font-stretch:expanded;
+}
+
+.powerButton
+{
+ display:block;
+ width:4.7vh;
+ height:4.6vh;
+ border-radius:50%;
+ background:radial-gradient(#ffaa80, #ee7000);
+ box-shadow:0px 0px 2px #a0a0a0;
+ position:absolute;
+ right:0px;
+ top:0px;
+ transition:all 0.5s ease-in-out;
+}
+
+.powerButton b
+{
+ content:"";
+ display:block;
+ position:absolute;
+ left:0.85vh;
+ top:0.90vh;
+ width:2.2vh;
+ height:2.2vh;
+ border-radius:50%;
+ border: 0.4vh solid #ffffff;
+ border-top-color: rgba(0,0,0,0);
+}
+.powerButton b:after
+{
+ content:"";
+ display:block;
+ position:absolute; 
+ left:0.85vh;
+ top:-0.5vh;
+ width:0.5vh;
+ height:1.5vh;
+ border-radius:0.2vh;
+ background-color:#ffffff;
+}
+
+.slider
+{
+ display:block;
+ height:9vh;
+ width:90vw;
+ position:relative;
+ border-width:1px;
+ border-color:yellow;
+ border-radius:5px;
+ border-style:none;
+ pointer-events:auto;
+}
+
+.slider b
+{
+ display:block;
+ color:yellow;
+ height:2vh;
+ width:70vw;
+ margin:0 auto;
+ text-align:center;
+ font-size:2vh;
+ color:#ffffff;
+ pointer-events:none;
+}
+
+.slider div
+{
+ display:block;
+ width:86vw;
+ height:3vh;
+ position:absolute;
+ left:2vw;
+ bottom:2.5vh;
+ background:linear-gradient(183deg, #f0f0f0, #202020);
+ box-shadow:0px 0px 0px 1px #a0a0a0;
+ border-radius:1.5vh;
+ border-color:#505050;
+ border-width:1px;
+ border-style:solid;
+ pointer-events:none;
+}
+
+.slider span
+{
+ display:block;
+ width:3vh;
+ height:5vh;
+ position:absolute;
+ left:2.5vw;
+ bottom:4vh;
+ background:linear-gradient(to left, #ffaa00, #ffff00);
+ box-shadow:0px 0px 3px 2px #ffffff;
+ border-radius:0.5vh;
+ border-color:#404040;
+ border-width:1px;
+ transform:translate(-50%, 50%);
+ border-style:solid;
+ pointer-events:none;
+ transition:all 0.2s linear;
+}
+</style>
+
+ 
+ <script>
+var API = new class
+{
+ constructor()
+ {
+ 
+ }
+ 
+ GetData(ip, apikey, param, callback)
+ {
+ if(typeof callback !== 'undefined' && (ip.startsWith("0.") || apikey.length<8)) 
+ {
+ callback('{"error" : "IP or key is not correct"}');
+ }
+ else
+ {
+ var link = "http://" + ip + "/api/" + param;
+ link += "?apikey=" + apikey;
+ this.SendGetRequest(link, callback);
+ }
+ }
+ 
+ SendOnOff(ip, apikey, on, callback)
+ {
+ var link = "http://" + ip + "/api/relay/0";
+ var params = "apikey=" + apikey + "&value=" + (on?"1":"0");
+ this.SendPutRequest(link, params, callback);
+ }
+ 
+ SendBrightness(ip, apikey, brightness, callback)
+ {
+ var link = "http://" + ip + "/api/brightness";
+ var params = "apikey=" + apikey + "&value=" + parseInt(brightness);
+ this.SendPutRequest(link, params, callback);
+ }
+ 
+ SendChannel(ip, apikey, chId, brightness, callback)
+ {
+ var link = "http://" + ip + "/api/channel/" + chId;
+ var params = "apikey=" + apikey + "&value=" + parseInt(brightness);
+ this.SendPutRequest(link, params, callback);
+ }
+ 
+ RequestStateChange(req, callback)
+ {
+ if (req.readyState === 4) 
+ {
+ if(req.status === 200)
+ {
+ 
+ var l = "<p>RESPONSE:";
+ var json = JSON.parse(req.response);
+ for(var k in json)
+ {
+ l += "- " + k + "=" + json[k];
+ }
+ log += l + "</p>";
+ if(typeof callback !== 'undefined') callback(req.response);
+ }
+ }
+ }
+ 
+ RequestStateError(req, callback, err)
+ {
+ if(typeof callback !== 'undefined') callback('{"error" : "' + (err && err.type && err.type==='timeout'?"Timeout":(req.responseText?req.responseText:err)) + '"}');
+ else log += "<p> STATUS ERROR: " + req.status + (err && err.type && err.type==='timeout'?"Timeout":req.responseText) + "</p>";
+ }
+ 
+ SendGetRequest(link, callback)
+ {
+ try
+ {
+ var req = new XMLHttpRequest();
+ req.open("GET", link, true); 
+ req.timeout = 1000;
+ 
+ req.onreadystatechange = ()=>{this.RequestStateChange(req, callback);};
+ req.onerror = (e)=>{this.RequestStateError(req, callback, e); };
+ req.ontimeout = (e)=>{this.RequestStateError(req, callback, e); };
+ 
+ log += "<p>Send (GET)<br>" + link + "</p>";
+ 
+ req.setRequestHeader("Accept", "application/json");
+ req.withCredentials = false;
+ req.send(null);
+ }
+ catch(err)
+ {
+ this.RequestStateError(req, callback, false);
+ }
+ }
+ 
+ SendPutRequest(link, params, callback)
+ {
+ try
+ {
+ var req = new XMLHttpRequest();
+ req.open("PUT", link + "?" + params, true);
+ req.onreadystatechange = function () 
+ {
+ if (req.readyState === 4) 
+ { 
+ if(req.status === 200)
+ {
+ var l = "<p>RESPONSE: '";
+ var json = JSON.parse(req.response);
+ for(var k in json)
+ {
+ l += " - " + k + "'=" + json[k];
+ }
+ log += l + "</p>";
+ if(typeof callback !== 'undefined') callback(req.response);
+ }
+ else
+ {
+ log += "<p> STATUS ERROR: " + req.status + ", " + req.responseText + "</p>";
+ if(typeof callback !== 'undefined') callback('{"error" : "' + req.responseText + '"}');
+ }
+ }
+ };
+ 
+ log += "<p>Send <br>" + link + "<br>" + params + "</p>";
+ 
+ req.setRequestHeader("Accept", "application/json");
+ req.withCredentials = false;
+ 
+ req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+ req.send(params);
+ }
+ catch(err)
+ {
+ alert("ERROR:" + err);
+ }
+ }
+ 
+ SendRequest(command, paramvalue, method)
+ {
+ try
+ {
+ var dd = document.getElementById("debugdiv");
+ dd.innerHTML = "v0.0.13";
+ 
+ var params = "apikey=" + Params.apikey;
+ params += "&value=" + encodeURIComponent(paramvalue);
+ var req = new XMLHttpRequest();
+ if(typeof method === 'undefined') method = 'GET2';
+ var link = "";
+ switch(method)
+ {
+ case 'PUT': link = "http://" + Params.ip + "/api/" + command + "?" + params; req.open("PUT", link, true); break;
+ case 'POST': link = "http://" + Params.ip + "/api/" + command + "?" + params; req.open("POST", link, true); break;
+ case 'GET': link = "http://" + Params.ip + "/api/" + command + "?apikey=" + Params.apikey; req.open("GET", link, true); break;
+ case 'GET2': link = "http://" + Params.ip + "/apis?apikey=" + Params.apikey; req.open("GET", link, true); break;
+ }
+ req.onreadystatechange = function () 
+ {
+ if (req.readyState === 4) 
+ {
+ var s = "";
+ var h = req.getAllResponseHeaders();
+ for(var j in h){s += j + "=" + h[j] + "\n";}
+ 
+ if(req.status === 200)
+ {
+ dd.innerHTML += "<br>RESPONSE:<br>";
+ var json = JSON.parse(req.response);
+ for(var k in json)
+ {
+ dd.innerHTML += k + "=" + json[k] + "<br>";
+ }
+ }
+ else
+ {
+ dd.innerHTML += "<br> STATUS ERROR: " + req.status + "\n" + req.responseText + "\n" + h;
+ }
+ }
+ };
+ 
+ dd.innerHTML += "<br>Send (" + method + ")<br>" + link + "<br>";
+ 
+ req.setRequestHeader("Accept", "application/json");
+ req.withCredentials = false;
+ 
+ switch(method)
+ {
+ case 'PUT': 
+ case 'POST':req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+ req.send(params);
+ break;
+ 
+ default: req.send(null);
+ break;
+ }
+ }
+ catch(err)
+ {
+ alert("ERROR:" + err);
+ }
+ }
+};
+</script>
+ <script> 
+const MAX_VALUE = 4095;
+const GET_RELAY = 0x001;
+const GET_TRANS = 0x002;
+const GET_BRIGHT = 0x004;
+const GET_CHS = 0x0F0;
+const GET_CH0 = 0x010;
+const GET_CH1 = 0x020;
+const GET_CH2 = 0x040;
+const GET_CH3 = 0x080;
+const GET_ALL = GET_RELAY | GET_TRANS | GET_BRIGHT | GET_CHS;
+const GAMMA = 0.9;
+
+const YELLOW_CHANNELS = [0,3];
+const WHITE_CHANNELS = [1,2];
+const TOP_CHANNELS = [2,3];
+const BOTTOM_CHANNELS = [0,1];
+const CHANNELS_ID = [1,2,3,4];
+
+class Controller
+{
+ constructor(id)
+ {
+ this.id = id;
+ this.name = "Light";
+ this.ip = "0.0.0.0";
+ this.apikey = "";
+ this.brightness = -1;
+ this.direction = MAX_VALUE / 2;
+ this.transition = 0;
+ this.updating = 0;
+ this.channels = [-1,-1,-1,-1];
+ this.maxBrightness = MAX_VALUE / 2;
+ this.APIfails = 0;
+ this.APIRequests = 0;
+ this.nextRequestTimer = null;
+ this.status = { on:false, offline:true, trygoonline:false, loadingDiv:null };
+ }
+ 
+ GetChannels()
+ {
+ return this.channels;
+ }
+ 
+ GetBrightness()
+ {
+ return this.maxBrightness;
+ }
+ 
+ GetDirection()
+ {
+ return this.direction;
+ }
+ 
+ GetTransition()
+ {
+ return this.transition;
+ }
+ 
+ GetStatus()
+ {
+ return this.status;
+ }
+ 
+ PowerOnOff(func)
+ {
+ this.status.loadingDiv.style.opacity = 1.0;
+ API.SendOnOff(this.ip, this.apikey, !this.status.on, (a)=>{
+ var j = JSON.parse(a);
+ if(j && !isNaN(parseInt(j["relay/0"]))) 
+ {
+ this.status.on = parseInt(j["relay/0"]);
+ func(this.status.on);
+ }
+ this.status.loadingDiv.style.opacity = 0.0;
+ });
+ }
+ 
+ GotGetAnswer(a, param, mask)
+ {
+ try
+ {
+ var j = JSON.parse(a);
+ if(j["error"]) 
+ {
+ console.log(j);
+ console.error(j["error"] + "\n" + this.ip); 
+ log += "<p style='color:darkred'>" + j['error'] + "-" + this.ip + "</p>";
+ this.status.offline = true;
+ this.status.trygoonline = false;
+ }
+ else 
+ {
+ switch(param)
+ {
+ case "relay/0" : this.status.on = (j[param] === 1); break;
+ case "transition" : this.transition = parseInt(j[param]); break;
+ case "brightness" : if(parseInt(j[param]) < MAX_VALUE)
+ {
+ API.SendBrightness(this.ip, this.apikey, MAX_VALUE, (a)=>{
+ var j = JSON.parse(a);
+ if(j && !isNaN(parseInt(j["brightness"]))) this.brightness = parseInt(j["brightness"]);
+ }); 
+ }
+ else
+ {
+ this.brightness = parseInt(j["brightness"]);
+ }
+ break; 
+ case "transition" : this.transition = parseInt(j[param]); break;
+ case "channel/" + CHANNELS_ID[0] : this.channels[0] = j[param]; break;
+ case "channel/" + CHANNELS_ID[1] : this.channels[1] = j[param]; break;
+ case "channel/" + CHANNELS_ID[2] : this.channels[2] = j[param]; break;
+ case "channel/" + CHANNELS_ID[3] : this.channels[3] = j[param]; break;
+ }
+ }
+ }
+ catch(err)
+ {
+ this.status.trygoonline = false;
+ this.status.offline = true;
+ }
+ this.APIRequests--;
+ if(this.APIRequests <= 0)
+ {
+ log += "<i>GOT ALL DATA</i><hr>";
+ this.status.loadingDiv.style.opacity = 0;
+ 
+ if(mask === GET_ALL && !this.status.trygoonline && ++this.APIfails < 10)
+ {
+ setTimeout(()=>{this.GetData(mask);}, 1000 - this.APIfails*50);
+ }
+ else if(this.status.offline && this.status.trygoonline)
+ {
+ this.status.offline = false;
+ var v = Controllers.CalcReverseCorrection([this.channels[0],this.channels[1],this.channels[2],this.channels[3]], MAX_VALUE);
+ this.maxBrightness = v.brightness;
+ this.direction = v.direction;
+ if(Math.abs(Controllers.balance - v.balance) > 10)
+
+ {
+ log += "<p style='color:#604000'>WRONG balance, reset from " + v.balance + " to " + Controllers.balance + "</p>";
+ Controllers.SetBalance(Controllers.balance, false, true);
+ 
+
+ }
+ }
+ 
+ if(mask === GET_ALL || mask === GET_RELAY)
+ {
+ 
+
+ Controllers.UpdateUI();
+ }
+ else
+ {
+ Controllers.UpdateUIController(this);
+ }
+ }
+ }
+ 
+ GetData(mask)
+ {
+ if(this.APIRequests > 0) 
+ {
+ return false;
+ }
+ this.APIRequests = 1;
+ this.status.loadingDiv.style.opacity = 1.0;
+ 
+ this.status.trygoonline = true;
+ for(var j=0;j<16;j++)
+ {
+ if((mask & (1 << j)) > 0) this.APIRequests++;
+ }
+ this.APIRequests--;
+ 
+ if((mask & GET_RELAY) > 0)
+ {
+ API.GetData(this.ip, this.apikey, "relay/0", (a)=>{
+ this.GotGetAnswer(a, "relay/0", mask);
+ });
+ }
+ 
+ if((mask & GET_TRANS) > 0)
+ {
+ API.GetData(this.ip, this.apikey, "transition", (a)=>{
+ this.GotGetAnswer(a, "transition", mask);
+ });
+ }
+ 
+ if((mask & GET_BRIGHT) > 0)
+ {
+ API.GetData(this.ip, this.apikey, "brightness", (a)=>{
+ this.GotGetAnswer(a, "brightness", mask);
+ });
+ }
+ 
+ if((mask & GET_CHS) > 0)
+ {
+ for(let j=0;j<4;j++)
+ {
+ if(((mask & GET_CH0) << j) > 0)
+ {
+ API.GetData(this.ip, this.apikey, "channel/" + CHANNELS_ID[j], (a)=>{
+ this.GotGetAnswer(a, "channel/" + CHANNELS_ID[j], mask);
+ });
+ }
+ }
+ }
+ return true;
+ }
+ 
+ SetBrightness(newBrightness, test)
+ {
+ if(newBrightness > MAX_VALUE) newBrightness = MAX_VALUE;
+ else if(newBrightness < 0) newBrightness = 0;
+ if(newBrightness !== this.maxBrightness)
+ {
+ this.maxBrightness = newBrightness;
+ this.UpdateChannels(test);
+ }
+ }
+ 
+ SetDirection(newDirection, test)
+ {
+ if(newDirection > MAX_VALUE) newDirection = MAX_VALUE;
+ else if(newDirection < 0) newDirection = 0;
+ if(newDirection !== this.direction)
+ {
+ this.direction = newDirection;
+ this.UpdateChannels(test);
+ }
+ }
+ 
+ UpdateChannels(test)
+ {
+ if(this.updating > 0)
+ {
+ if(this.nextRequestTimer !== null)
+ {
+ clearTimeout(this.nextRequestTimer);
+ }
+ this.nextRequestTimer = setTimeout(()=> {
+ this.UpdateChannels(test);
+ }, 200);
+ return;
+ }
+ this.updating++;
+ if(this.nextRequestTimer !== null) {clearTimeout(this.nextRequestTimer); this.nextRequestTimer = null; };
+ this.status.loadingDiv.style.opacity = 1.0;
+ 
+ var channels = [this.maxBrightness,this.maxBrightness,this.maxBrightness,this.maxBrightness];
+ log += "<p>Update channels:<br>";
+ if(this.direction <= MAX_VALUE / 2)
+ {
+ for(var j=0;j<2;j++)
+ channels[TOP_CHANNELS[j]] = channels[TOP_CHANNELS[j]] * (this.direction * 1.0 / parseInt(MAX_VALUE / 2));
+ }
+ else
+ {
+ for(var j=0;j<2;j++)
+ channels[BOTTOM_CHANNELS[j]] = channels[BOTTOM_CHANNELS[j]] * ((MAX_VALUE - this.direction) * 1.0 / parseInt(MAX_VALUE / 2));
+ }
+ log += "Directions (" + this.direction + "): " + channels[0] + ", " + channels[1] + ", " + channels[2] + ", " + channels[3] + "<br>";
+ 
+ for(var j=0;j<2;j++)
+ {
+ channels[WHITE_CHANNELS[j]] *= (Controllers.balance * 1.0 / MAX_VALUE);
+ channels[YELLOW_CHANNELS[j]] *= (1 - (Controllers.balance * 1.0 / MAX_VALUE));
+ }
+ log += "Balance (" + Controllers.balance + "): " + channels[0] + ", " + channels[1] + ", " + channels[2] + ", " + channels[3] + "<br>";
+ 
+ log += "Gamma correction...</p>";
+ for(let j=0;j<4;j++)
+ {
+ channels[j] = Controllers.GammaCorrection(channels[j], MAX_VALUE);
+ var updated = 0;
+ 
+ API.SendChannel(this.ip, this.apikey, CHANNELS_ID[j], channels[j], (a)=>{
+ var json = JSON.parse(a);
+ this.channels[j] = parseInt(json["channel/" + CHANNELS_ID[j]]);
+ if(++updated >= 4) 
+ {
+ Controllers.UpdateUIController(this);
+ this.updating--;
+ this.status.loadingDiv.style.opacity = 0.0;
+ }
+ }); 
+ }
+ }
+};
+
+var Controllers = new class
+{
+ constructor()
+ {
+ this.controller = [];
+ this.count = 0;
+ this.color = 50.0;
+ this.activeController = null;
+ this.balance = MAX_VALUE / 2;
+ this.sliders = [];
+ this.tableDiv = null;
+ }
+ 
+ CreateSliderUI()
+ {
+ var div = document.getElementById('slidersdiv');
+ div.innerHTML = "";
+ this.sliders.push({value:MAX_VALUE / 2, func:(v,t)=>{}, cursor:null});
+ this.sliders.push({value:MAX_VALUE / 2, func:(v,t)=>{}, cursor:null});
+ this.sliders.push({value:MAX_VALUE / 2, func:(v,t)=>{}, cursor:null});
+ div.appendChild(this.AddSlider(
+ 0, 
+ "Helligkeit", "#FFFFFF", "#A0A0A0", "#000000"
+ ));
+ div.appendChild(this.AddSlider(
+ 1, 
+ "Farbton", "#B0B0FF", "#FFFFFF", "#FFDD00"
+ ));
+ div.appendChild(this.AddSlider(
+ 2, 
+ "Verteilung", "#FFFFFF", "#303030", "#FFFFFF"
+ ));
+ 
+ this.tableDiv = document.createElement("table");
+ this.tableDiv.className = getExpertModeClass();
+ this.tableDiv.setAttribute("style", "font-size:80%;margin:0 auto;width:90vw;opacity:0.5;color:#cdcdcd;");
+ var td;
+ var tr = document.createElement("tr");
+ td = document.createElement("th"); td.appendChild(document.createTextNode("trans.")); tr.appendChild(td);
+ td = document.createElement("th"); td.appendChild(document.createTextNode("bright.")); tr.appendChild(td);
+ td = document.createElement("th"); td.appendChild(document.createTextNode("CH #1")); tr.appendChild(td);
+ td = document.createElement("th"); td.appendChild(document.createTextNode("CH #2")); tr.appendChild(td);
+ td = document.createElement("th"); td.appendChild(document.createTextNode("CH #3")); tr.appendChild(td);
+ td = document.createElement("th"); td.appendChild(document.createTextNode("CH #4")); tr.appendChild(td);
+ this.tableDiv.appendChild(tr);
+ tr = document.createElement("tr");
+ td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
+ td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
+ td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
+ td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
+ td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
+ td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
+ this.tableDiv.appendChild(tr);
+ div.appendChild(this.tableDiv);
+ div.style.opacity = 0.0;
+ }
+ 
+ GetCount()
+ {
+ return this.count;
+ }
+ 
+ GetController(id)
+ {
+ for(var j in this.controller)
+ {
+ if(this.controller[j].id === id)
+ {
+ return this.controller[j];
+ }
+ }
+ return null;
+ }
+ 
+ AddController(id)
+ {
+ if(typeof id === 'undefined')
+ id = (new Date()).getTime();
+ 
+ var ctrl = new Controller(id);
+ this.controller.push(ctrl);
+ this.count++;
+ return ctrl;
+ }
+ 
+ RemoveController(id)
+ {
+ this.count--;
+ this.controller = this.controller.filter(function(c) {return c.id !== id;});
+ }
+ 
+ GammaCorrection(value, maxOut)
+ {
+ return parseInt(Math.pow(value * 1.0 / MAX_VALUE, GAMMA) * maxOut + 0.5);
+ }
+ 
+ CalcReverseCorrection(chs, maxOut)
+ {
+ var s = chs[0] + "," + chs[1] + "," + chs[2] + "," + chs[3];
+ var values = {brightness:0,direction:0,balance:0};
+ for(var j=0;j<4;j++)
+ {
+ chs[j] = Math.pow(chs[j] / maxOut, 1.0 / GAMMA) * MAX_VALUE;
+ }
+ var b = Math.max(chs[BOTTOM_CHANNELS[0]], chs[BOTTOM_CHANNELS[1]]);
+ var t = Math.max(chs[TOP_CHANNELS[0]], chs[TOP_CHANNELS[1]]);
+ 
+ if(t > b)
+ {
+ values.direction = MAX_VALUE - (b / t) * (MAX_VALUE * 0.5);
+ values.brightness = chs[TOP_CHANNELS[0]] + chs[TOP_CHANNELS[1]];
+ values.balance = MAX_VALUE * t / values.brightness;
+ }
+ else if(b===0)
+ {
+ values.balance = Controllers.balance;
+ values.direction = MAX_VALUE / 2;
+ values.brightness = MAX_VALUE / 2;
+ }
+ else
+ {
+ values.direction = (t / b) * (MAX_VALUE * 0.5);
+ values.brightness = chs[BOTTOM_CHANNELS[0]] + chs[BOTTOM_CHANNELS[1]];
+ values.balance = MAX_VALUE * b / values.brightness;
+ 
+ }
+ 
+ s += "<br>bottom: " + b + " top: " + t + " max: " + maxOut;
+ values.brightness = parseInt(Math.max(0, values.brightness));
+ values.balance = parseInt(values.balance);
+ values.direction = parseInt(values.direction);
+ log += "<p>" + s + "<br>" + parseInt(chs[0]) + "," + parseInt(chs[1]) + "," + parseInt(chs[2]) + "," + parseInt(chs[3]) + "<br>Brightness: " + values.brightness + " - Balance: " + values.balance + " - Direction: " + values.direction + "</p>";
+ return values;
+ }
+ 
+ PowerOnOff(id, func)
+ {
+ if(typeof id !== 'undefined')
+ {
+ this.GetController(id).PowerOnOff(func);
+ }
+ else
+ {
+ func(false);
+ }
+ }
+ 
+ GetData()
+ {
+ for(var j in this.controller)
+ {
+ var success = this.controller[j].GetData(GET_ALL);
+ }
+ }
+ 
+ SetBalance(newBalance, test, force)
+ {
+ if(newBalance > MAX_VALUE) newBalance = MAX_VALUE;
+ else if(newBalance < 0) newBalance = 0;
+ if(newBalance !== this.balance)
+ {
+ if(typeof Params !== 'undefined')
+ {
+ Params.UpdateBalance(newBalance);
+ }
+ this.balance = newBalance;
+ if(test)
+ {
+ this.activeController.UpdateChannels(true);
+ }
+ else
+ {
+ 
+
+ for(var j in this.controller)
+ {
+ var success = this.controller[j].UpdateChannels(false);
+ }
+ }
+ }
+ else if(typeof force !== 'undefined' && force && this.activeController !== null)
+ {
+ this.activeController.UpdateChannels(false);
+ }
+ }
+ 
+ UpdateUI()
+ {
+ var div = document.getElementById('lightsdiv');
+ div.innerHTML = "";
+ for(let j in this.controller)
+ {
+ let ctrl = this.controller[j];
+ 
+ var b = document.createElement("div");
+ b.className = "buttCtrl";
+ var b2 = document.createElement("span");
+ b2.setAttribute("style", "pointer-events:none;");
+ b2.appendChild(document.createTextNode(ctrl.name.toUpperCase()));
+ b.appendChild(b2);
+ var e1 = document.createElement("b");
+ e1.appendChild(document.createTextNode(' \u2699 '));
+ e1.className = getEditModeClass();
+ e1.setAttribute("style", "position:absolute;top:0px;left:5px;font-size:3.5vh;");
+ b.appendChild(e1);
+ let i1 = document.createElement("b");
+ i1.appendChild(document.createElement("b"));
+ i1.appendChild(document.createElement("i"));
+ i1.className="powerButton";
+ i1.setAttribute("style", "height:5vh;position:absolute;right:0px;top:0px;filter:hue-rotate(320deg);");
+ i1.style.filter = "hue-rotate(" + (ctrl.GetStatus().on?90:320) + "deg)";
+ b.style.filter = "grayscale(" + (ctrl.GetStatus().offline?"100%":"0%") + ")";
+ if(this.activeController === ctrl)
+ {
+ b.style.background="linear-gradient(to bottom, #ffef00, #a08000)";
+ }
+ b.appendChild(i1);
+ ctrl.status.loadingDiv = document.createElement("b");
+ ctrl.status.loadingDiv.className = "loader";
+ b.appendChild(ctrl.status.loadingDiv);
+ if(ctrl.status.offline)
+ ctrl.status.loadingDiv.style.opacity = 1.0;
+ div.appendChild(b);
+ 
+ b.addEventListener("click", ()=>{
+ if(ctrl.GetStatus().offline)
+ {
+ var success = ctrl.GetData();
+ }
+ else
+ {
+ document.getElementById('slidersdiv').opacity = 0.0;
+ var isOff = !ctrl.GetStatus().on;
+ if(isOff)
+ {
+ i1.click();
+ }
+ this.activeController = ctrl;
+ for(var k in div.childNodes)
+ {
+ if(div.childNodes[k].className !== "buttCtrl") continue;
+ div.childNodes[k].style.background="";
+ div.childNodes[k].style.color="";
+ }
+ b.style.background="linear-gradient(to bottom, #ffef00, #a08000)";
+ b.childNodes[0].style.color="#202000";
+ if(!isOff && !ctrl.GetStatus().offline) 
+ {
+ this.UpdateUIController(this.activeController);
+ }
+ }
+ });
+ 
+ i1.addEventListener("click", (e)=>{
+ if(ctrl.GetStatus().offline)
+ {
+ return;
+ }
+ else
+ {
+ this.PowerOnOff(ctrl.id, (isOn)=>{
+ if(!isOn)
+ {
+ this.UpdateUI();
+ }
+ else
+ {
+ ctrl.GetData(GET_ALL);
+ }
+ });
+ e.preventDefault();
+ e.stopPropagation();
+ }
+ });
+ 
+ e1.addEventListener("click", (e)=>{
+ e.preventDefault();
+ e.stopPropagation();
+ if(Controllers.activeController === this) 
+ {
+ Controllers.activeController = null;
+ Controllers.UpdateUIController();
+ }
+ Params.OpenControllerSettings(ctrl);
+ });
+ }
+ 
+ if(this.tableDiv === null)
+ {
+ this.CreateSliderUI();
+ }
+ 
+ if(this.activeController !== null && this.activeController.status.on && !this.activeController.status.offline) 
+ {
+ this.UpdateUIController(this.activeController);
+ }
+ }
+ 
+ UpdateUIController(controller)
+ {
+ var div = document.getElementById('slidersdiv');
+ div.style.opacity = 1.0;
+ if(controller !== this.activeController) 
+ {
+ return;
+ }
+ 
+ this.sliders[0].value = this.activeController.maxBrightness;
+ this.sliders[0].func = (v, t)=>{this.activeController.SetBrightness(v, t);};
+ 
+ this.sliders[1].value = this.balance;
+ this.sliders[1].func = (v, t)=>{this.SetBalance(v, t, false);};
+ 
+ this.sliders[2].value = this.activeController.direction;
+ this.sliders[2].func = (v, t)=>{this.activeController.SetDirection(v, t);};
+ 
+ var tds = this.tableDiv.getElementsByTagName("tr")[1].getElementsByTagName("td");
+ tds[0].innerHTML = this.activeController.GetTransition() + " ms";
+ tds[1].innerHTML = parseInt(this.activeController.GetBrightness());
+ tds[2].innerHTML = parseInt(this.activeController.GetChannels()[0]);
+ tds[3].innerHTML = parseInt(this.activeController.GetChannels()[1]);
+ tds[4].innerHTML = parseInt(this.activeController.GetChannels()[2]);
+ tds[5].innerHTML = parseInt(this.activeController.GetChannels()[3]);
+ 
+ var is = div.getElementsByTagName("i");
+ 
+ var maxSlider = window.innerWidth * (0.90 - 0.02);
+ var maxPx = maxSlider * 0.98;
+ 
+ for(var j=0;j<3;j++)
+ {
+ this.sliders[j].cursor.style.left = parseInt(maxPx * this.sliders[j].value / MAX_VALUE + maxSlider * 0.023) + "px";
+ is[0 + j*1].innerHTML = parseInt(this.sliders[j].value);
+ }
+ }
+ 
+ AddSlider(sliderId, title, c1, c2, c3)
+ {
+ var div = document.createElement("div");
+ div.className = "slider";
+ var maxSlider = window.innerWidth * (0.90 - 0.02);
+ var maxPx = maxSlider * 0.98;
+ var lastXPosition = this.sliders[sliderId].value;
+ var changeInterval = null;
+ 
+ var i1 = document.createElement("i");
+ i1.className = getExpertModeClass();
+ i1.setAttribute("style", "position:absolute;top:0px;right:2vw;font-size:50%;color:white;opacity:0.5;");
+ i1.appendChild(document.createTextNode(lastXPosition));
+ div.appendChild(i1);
+ 
+ var b = document.createElement("b");
+ b.appendChild(document.createTextNode(title));
+ div.appendChild(b);
+ 
+ var bar = document.createElement("div");
+ bar.style.background = "linear-gradient(270deg, " + c1 + ", " + c2 + ", " + c3 + ")";
+ div.appendChild(bar);
+ 
+ this.sliders[sliderId].cursor = document.createElement("span");
+ this.sliders[sliderId].cursor.style.left = parseInt(maxPx * 0.5 / MAX_VALUE + maxSlider * 0.023) + "px";
+ div.appendChild(this.sliders[sliderId].cursor);
+ 
+ var canStep = false;
+ 
+ var fValueChanged = (e, update)=>{
+ e.stopPropagation();
+ 
+ if(update) 
+ {
+ clearInterval(changeInterval); 
+ changeInterval = null;
+ }
+ else if(changeInterval === null) 
+ {
+ changeInterval = setInterval(()=>{
+ var value = MAX_VALUE * (lastXPosition / (maxSlider * 0.98));
+ this.sliders[sliderId].func(value, true);
+ }, 300);
+ }
+ 
+ if(typeof e.buttons !== 'undefined')
+ {
+ if(e.buttons===0 && !update) return;
+ lastXPosition = e.layerX;
+ }
+ else if(typeof e.touches[0] !== 'undefined')
+ {
+ if(e.touches.length === 2)
+ {
+ canStep = true;
+ 
+ }
+ else if(canStep)
+ {
+ return;
+ }
+ else
+ {
+ lastXPosition = e.touches[0].clientX - window.innerWidth * 0.04;
+ }
+ }
+ else
+ {
+ canStep = false;
+ }
+ if(lastXPosition > maxSlider) lastXPosition = maxSlider;
+ else if(lastXPosition < maxSlider * 0.02) lastXPosition = maxSlider * 0.02;
+ var value = parseInt(MAX_VALUE * ((lastXPosition - maxSlider * 0.02) / (maxSlider * 0.98)));
+ i1.innerHTML = value;
+ if(update)
+ {
+ lastXPosition = (lastXPosition - maxSlider * 0.02);
+ this.sliders[sliderId].func(value, false);
+ e.preventDefault();
+ }
+ else
+ {
+ this.sliders[sliderId].cursor.style.left = lastXPosition + "px";
+ }
+ };
+ 
+ div.addEventListener("mousemove", (e)=>{fValueChanged(e, false);} );
+ div.addEventListener("touchmove", (e)=>{fValueChanged(e, false);} );
+ div.addEventListener("touchstart", (e)=>{fValueChanged(e, false);} );
+ div.addEventListener("touchend", (e)=>{fValueChanged(e, true);} );
+ div.addEventListener("mouseup", (e)=>{fValueChanged(e, true);} );
+ return div;
+ }
+};</script>
+ <script>
+var Params = new class
+{ 
+ constructor()
+ {
+ var ctrls = this.GetCookie("ctrls");
+ if(ctrls.length>5)
+ {
+ ctrls = ctrls.split(",");
+ if(!isNaN(ctrls[0]))
+ {
+ for(var j=0;j<ctrls[0];j++)
+ {
+ var c = Controllers.AddController(ctrls[j+1]);
+ this.GetControllerParams(c); 
+ }
+ }
+ }
+ 
+ Controllers.balance = this.GetCookie("balance");
+ if(isNaN(Controllers.balance) || Controllers.balance.length < 1 || parseInt(Controllers.balance)>4095) 
+ {
+ Controllers.balance = 2047;
+ this.SetCookie("balance", Controllers.balance);
+ }
+ 
+ this.buttons = parseInt(this.GetCookie("totbutt"));
+ if(isNaN(this.buttons)) this.buttons = 0;
+ 
+ this.dialog = null;
+ }
+ 
+ AddSettingParam(dlg, title, value)
+ {
+ var span1 = document.createElement("span");
+ span1.appendChild(document.createTextNode(title));
+ 
+ var inp1 = document.createElement("input");
+ inp1.setAttribute("style", "text-align:center");
+ inp1.setAttribute("value", value);
+ 
+ dlg.appendChild(span1);
+ dlg.appendChild(inp1);
+ return inp1;
+ }
+ 
+ AddController()
+ {
+ switchEditMode();
+ 
+ Controllers.AddController();
+ var s = Controllers.GetCount() + ",";
+ for(var c in Controllers.controller)
+ {
+ s += Controllers.controller[c].id + ",";
+ }
+ this.SetCookie("ctrls", s);
+ for(var j in Controllers.controller)
+ {
+ this.SaveControllerParams(Controllers.controller[j]);
+ }
+ setTimeout(()=>{document.location.reload();}, 300);
+ }
+ 
+ OpenControllerSettings(ctrl)
+ {
+ if(this.dialog !== null) document.body.removeChild(this.dialog);
+ this.dialog = document.createElement("div");
+ this.dialog.className = "dialog";
+ 
+ var inpD = document.createElement("input");
+ inpD.setAttribute("type", "button");
+ inpD.setAttribute("value", ctrl.name + " Löschen");
+ inpD.addEventListener("click", ()=>{
+ if(confirm("Soll es wirklich gelöscht werden?"))
+ {
+ Controllers.RemoveController(ctrl.id);
+ var s = Controllers.GetCount() + ",";
+ for(var c in Controllers.controller)
+ {
+ s += Controllers.controller[c].id + ",";
+ }
+ this.SetCookie("ctrls", s);
+ document.body.removeChild(this.dialog);
+ setTimeout(()=>{document.location.reload();}, 300);
+ } 
+ });
+ this.dialog.appendChild(inpD);
+ let inp1 = this.AddSettingParam(this.dialog, "Name: ", ctrl.name);
+ inp1.addEventListener("change", ()=>{ctrl.name = inp1.value;});
+ let inp2 = this.AddSettingParam(this.dialog, "IP: ", ctrl.ip);
+ inp2.addEventListener("change", ()=>{ctrl.ip = inp2.value;});
+ let inp3 = this.AddSettingParam(this.dialog, "Api Key: ", ctrl.apikey);
+ inp3.addEventListener("change", ()=>{ctrl.apikey = inp3.value;});
+ inp3.addEventListener("contextmenu", (e)=>{
+ document.execCommand('copy');
+ alert("Text wurde kopiert");
+ });
+ var inpS = document.createElement("input");
+ inpS.setAttribute("type", "button");
+ inpS.setAttribute("value", "Speichern");
+ inpS.setAttribute("style", "margin-top:2vh;");
+ inpS.addEventListener("click", ()=>{
+ for(var j in Controllers.controller)
+ {
+ this.SaveControllerParams(Controllers.controller[j]);
+ }
+ document.body.removeChild(this.dialog);
+ this.dialog = null;
+ Controllers.UpdateUI();
+ });
+ this.dialog.appendChild(inpS);
+ document.body.appendChild(this.dialog);
+ }
+ 
+ SaveControllerParams(ctrl)
+ {
+ this.SetCookie("ctrl" + ctrl.id + "_name", ctrl.name);
+ this.SetCookie("ctrl" + ctrl.id + "_ip", ctrl.ip);
+ this.SetCookie("ctrl" + ctrl.id + "_apikey", ctrl.apikey);
+ }
+ 
+ GetControllerParams(ctrl)
+ {
+ ctrl.name = this.GetCookie("ctrl" + ctrl.id + "_name");
+ ctrl.ip = this.GetCookie("ctrl" + ctrl.id + "_ip");
+ ctrl.apikey = this.GetCookie("ctrl" + ctrl.id + "_apikey");
+ }
+ 
+ UpdateBalance(balance)
+ {
+ if(Controllers.balance !== balance)
+ {
+ Controllers.balance = balance;
+ this.SetCookie("balance", balance);
+ }
+ }
+ 
+ GetCookie(cname) 
+ {
+ var name = cname + "=";
+ var decodedCookie = decodeURIComponent(document.cookie);
+ var ca = decodedCookie.split(';');
+ for(var i = 0; i <ca.length; i++) 
+ {
+ var c = ca[i];
+ while (c.charAt(0) === ' ') 
+ {
+ c = c.substring(1);
+ }
+ if (c.indexOf(name) === 0) 
+ {
+ return c.substring(name.length, c.length);
+ }
+ }
+ return "";
+ } 
+ 
+ SetCookie(cname, cvalue)
+ {
+ var exdays = 365 * 25;
+ var d = new Date();
+ d.setTime(d.getTime() + (exdays*24*60*60*1000));
+ var expires = "expires="+ d.toUTCString();
+ document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+ }
+};
+</script>
+ <script> 
+var editMode = false;
+var expertMode = true;
+var logTimer = null;
+
+function switchEditMode(el)
+{
+ var newMode = editMode ? "edit_no" : "edit_yes";
+ var items = document.getElementsByClassName(getEditModeClass());
+ while(items.length>0)
+ {
+ items[0].className = newMode;
+ }
+ editMode = !editMode;
+ if(typeof el !== 'undefined')
+ el.style.color = editMode ? "white" : "";
+}
+
+function getEditModeClass()
+{
+ return editMode ? "edit_yes" : "edit_no";
+}
+
+function switchExpertMode(el)
+{
+ var newMode = expertMode ? "expert_no" : "expert_yes";
+ var items = document.getElementsByClassName(getExpertModeClass());
+ while(items.length>0)
+ {
+ items[0].className = newMode;
+ }
+ expertMode = !expertMode;
+ el.style.color = expertMode ? "white" : "";
+}
+
+function getExpertModeClass()
+{
+ return expertMode ? "expert_yes" : "expert_no";
+}
+
+function showLog(el)
+{
+ var dd = document.getElementById("debugdiv");
+ var h = parseInt(dd.style.height);
+ if(isNaN(h)) h = 2;
+ dd.innerHTML = log;
+ dd.scrollTop = document.getElementById("debugdiv").scrollHeight;
+ dd.style.height = h < 10 ? "80vh" : "2vh";
+ dd.style.opacity = h < 10 ? "0.9" : "0.1";
+ el.style.color = h < 10 ? "white" : "";
+ if(h < 10)
+ {
+ logTimer = setInterval(()=>{
+ var log2 = dd.innerHTML.length;
+ if(log2 < log.length)
+ {
+ dd.innerHTML = log;
+ dd.scrollTop = document.getElementById("debugdiv").scrollHeight;
+ }
+ }, 300);
+ }
+ else
+ {
+ clearInterval(logTimer);
+ logTimer = null;
+ }
+}
+</script>
+ 
+ <meta name="mobile-web-app-capable" content="yes" />
+ <meta name="apple-mobile-web-app-capable" content="yes" />
+ <meta name="application-name" content="H801 Controller" />
+ <meta name="apple-mobile-web-app-title" content="H801 Controller" />
+ <meta name="msapplication-starturl" content="/h801/" />
+ <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, shrink-to-fit=no" />
+ 
+ 
+ </head>
+ <body> 
+ <div class='maindiv'>
+ 
+ <div style='display:block;position:absolute;text-align:center;width:90vw;height:43vh;left:2vw;top:2vh;border-style:ridge;border-width:1px;border-radius:2px;overflow:auto;' id='lightsdiv'>
+ </div>
+ 
+ <div style='display:block;position:absolute;text-align:center;width:90vw;height:38vh;left:2vw;bottom:3vh;border-style:ridge;border-width:1px;border-radius:2px;padding-top:3vh;opacity:0.0;transition:opacity 1s ease-in-out;' id='slidersdiv'>
+ </div>
+ 
+ <div id='debugdiv' class='debugdiv' ondblclick="this.style.height='50vh';this.style.bottom='45vh';">
+ </div>
+ </div>
+ 
+ <div class='menu' onclick="">
+ <span onclick="">  ☰</span>
+ <h4>H801 Controller</h4>
+ <i style='font-size:50%;'>
+ H801 light module - Controller<br>
+ Each module is managed by the IP-Nr and ApiKey.<br>
+ © 2019 - Adriano Petrucci
+ </i>
+ <br>
+ <hr>
+ <em onClick='showLog(this);'>Show LOG</em><br>
+ <em onClick='switchExpertMode(this);'>Expert Mode</em><br>
+ <em onClick='switchEditMode(this);'>Edit Mode</em><br>
+ <em onClick='Params.AddController();' class='edit_no'>Add light</em><br>
+ <br>
+ <b id='onoffimg' class='powerButton' onclick="PowerOff();" style='top:70vh;left:50%;transform:scale(4.0);'><b></b><i></i></b>
+ <i style='font-size:80%;width:95%;position:absolute;bottom:1vh;right:1vw;text-align:center;display:block;margin:0 auto;'>
+ Power OFF
+ </i>
+ </div>
+ 
+ <script>
+ var log = "LOG:";
+ 
+ window.addEventListener("error", (e) =>{
+ log += "<p style='background-color:#ff8080;'>" + e.message + "(" + e.filename.substring(e.filename.lastIndexOf("/") + 1) + " - line:" + e.lineno + ")</p>";
+ });
+ 
+ 
+
+ document.addEventListener("DOMContentLoaded", ()=>{
+ Controllers.UpdateUI();
+ Controllers.GetData();
+ });
+ 
+ document.body.addEventListener("contextmenu", (e)=>{e.preventDefault();return false;});
+ 
+ </script>
+ </body>
+</html>

@@ -472,7 +472,7 @@
 #endif
 
 #ifndef WEB_FORCE_PASS_CHANGE
-#define WEB_FORCE_PASS_CHANGE       1           // Force the user to change the password if default one
+#define WEB_FORCE_PASS_CHANGE       0           // Force the user to change the password if default one
 #endif
 
 #ifndef WEB_PORT
@@ -487,7 +487,7 @@
 // there are no special requirements. Any static web server will do (NGinx, Apache, Lighttpd,...).
 // The only requirement is that the resource must be available under this domain.
 #ifndef WEB_REMOTE_DOMAIN
-#define WEB_REMOTE_DOMAIN           "http://tinkerman.cat"
+#define WEB_REMOTE_DOMAIN           "*"
 #endif
 
 // -----------------------------------------------------------------------------
@@ -521,7 +521,7 @@
 
 // This will only be enabled if WEB_SUPPORT is 1 (this is the default value)
 #ifndef API_ENABLED
-#define API_ENABLED                 0           // Do not enable API by default
+#define API_ENABLED                 1           // Do not enable API by default
 #endif
 
 #ifndef API_RESTFUL
@@ -650,12 +650,12 @@
 // -----------------------------------------------------------------------------
 
 #ifndef MQTT_SUPPORT
-#define MQTT_SUPPORT                1           // MQTT support (22.38Kb async, 12.48Kb sync)
+#define MQTT_SUPPORT                0           // MQTT support (22.38Kb async, 12.48Kb sync)
 #endif
 
 
 #ifndef MQTT_USE_ASYNC
-#define MQTT_USE_ASYNC              1           // Use AysncMQTTClient (1) or PubSubClient (0)
+#define MQTT_USE_ASYNC              0           // Use AysncMQTTClient (1) or PubSubClient (0)
 #endif
 
 // MQTT OVER SSL
@@ -908,11 +908,11 @@
 #endif
 
 #ifndef LIGHT_MAX_VALUE
-#define LIGHT_MAX_VALUE         255         // Maximum light value
+#define LIGHT_MAX_VALUE         4095         // Maximum light value
 #endif
 
 #ifndef LIGHT_MAX_BRIGHTNESS
-#define LIGHT_MAX_BRIGHTNESS    255         // Maximun brightness value
+#define LIGHT_MAX_BRIGHTNESS    4095         // Maximun brightness value
 #endif
 
 #define LIGHT_MIN_MIREDS        153      // Default to the Philips Hue value that HA also use.
@@ -923,7 +923,7 @@
 #endif
 
 #ifndef LIGHT_USE_COLOR
-#define LIGHT_USE_COLOR         1           // Use 3 first channels as RGB
+#define LIGHT_USE_COLOR         0           // Use 3 first channels as RGB
 #endif
 
 #ifndef LIGHT_USE_WHITE
@@ -944,7 +944,7 @@
 #endif
 
 #ifndef LIGHT_USE_CSS
-#define LIGHT_USE_CSS           1           // Use CSS style to report colors (1=> "#FF0000", 0=> "255,0,0")
+#define LIGHT_USE_CSS           0           // Use CSS style to report colors (1=> "#FF0000", 0=> "255,0,0")
 #endif
 
 #ifndef LIGHT_USE_RGB
@@ -952,7 +952,7 @@
 #endif
 
 #ifndef LIGHT_WHITE_FACTOR
-#define LIGHT_WHITE_FACTOR      1           // When using LIGHT_USE_WHITE with uneven brightness LEDs,
+#define LIGHT_WHITE_FACTOR      0           // When using LIGHT_USE_WHITE with uneven brightness LEDs,
                                             // this factor is used to scale the white channel to match brightness
 #endif
 
@@ -1052,7 +1052,7 @@
 // -----------------------------------------------------------------------------
 
 #ifndef THINGSPEAK_SUPPORT
-#define THINGSPEAK_SUPPORT          1               // Enable Thingspeak support by default (2.56Kb)
+#define THINGSPEAK_SUPPORT          0               // Enable Thingspeak support by default (2.56Kb)
 #endif
 
 #ifndef THINGSPEAK_ENABLED
@@ -1156,14 +1156,14 @@
 
 // This setting defines whether Alexa support should be built into the firmware
 #ifndef ALEXA_SUPPORT
-#define ALEXA_SUPPORT               1               // Enable Alexa support by default (10.84Kb)
+#define ALEXA_SUPPORT               0               // Enable Alexa support by default (10.84Kb)
 #endif
 
 // This is default value for the alexaEnabled setting that defines whether
 // this device should be discoberable and respond to Alexa commands.
 // Both ALEXA_SUPPORT and alexaEnabled should be 1 for Alexa support to work.
 #ifndef ALEXA_ENABLED
-#define ALEXA_ENABLED               1
+#define ALEXA_ENABLED               0
 #endif
 
 // -----------------------------------------------------------------------------

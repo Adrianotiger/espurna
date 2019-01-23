@@ -1,3 +1,8 @@
+# ESPurna FORK
+This is just a fork of the ESPurna project ([open original project](https://github.com/xoseperez/espurna)).
+It was focused on the H801 and Web-API.
+More info on '[FORK changes](fork.md)' document.
+
 # ESPurna Firmware
 
 ESPurna ("spark" in Catalan) is a custom firmware for ESP8285/ESP8266 based smart switches, lights and sensors.

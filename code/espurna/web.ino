@@ -31,6 +31,8 @@ Copyright (C) 2016-2018 by Xose Pérez <xose dot perez at gmail dot com>
     #include "static/index.all.html.gz.h"
 #endif
 
+#include "static/app.h801.html.gz.h"
+
 #endif // WEB_EMBEDDED
 
 #if ASYNC_TCP_SSL_ENABLED & WEB_SSL_ENABLED
@@ -213,6 +215,22 @@ void _onHome(AsyncWebServerRequest *request) {
 
 }
 #endif
+
+void _onApp(AsyncWebServerRequest *request) {
+    webLog(request);
+    if (request->header("If-Modified-Since").equals(_last_modified)) {
+        request->send(304);
+    } else {
+        AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", webui_app, webui_app_len);
+
+        response->addHeader("Content-Encoding", "gzip");
+        response->addHeader("Last-Modified", _last_modified);
+        response->addHeader("X-XSS-Protection", "1; mode=block");
+        response->addHeader("X-Content-Type-Options", "nosniff");
+        response->addHeader("X-Frame-Options", "deny");
+        request->send(response);
+    }
+}
 
 #if ASYNC_TCP_SSL_ENABLED & WEB_SSL_ENABLED
 
@@ -410,6 +428,8 @@ void webSetup() {
     #if WEB_EMBEDDED
         _server->on("/index.html", HTTP_GET, _onHome);
     #endif
+
+    _server->on("/app", HTTP_GET, _onApp);
 
     // Other entry points
     _server->on("/reset", HTTP_GET, _onReset);
