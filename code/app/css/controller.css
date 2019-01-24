@@ -1,23 +1,4 @@
 
-.onoffimg
-{
-  width:10vmax;
-  height:10vmax;
-  cursor:pointer;
-  position:absolute;
-  display:block;
-  left:50%;
-  bottom:1vh;
-  transform:translate(-50%, -50%);
-  filter:hue-rotate(320deg);
-  transition:all 0.5s ease-in-out;
-}
-
-.onoffimg:hover
-{
-  filter:hue-rotate(340deg) drop-shadow(0px 0px 20px #ffaaaa) brightness(130%);
-}
-
 .loader 
 {
   position:absolute;
@@ -92,6 +73,11 @@
   right:0px;
   top:0px;
   transition:all 0.5s ease-in-out;
+}
+
+.powerButton:hover
+{
+  filter:drop-shadow(0px 0px 20px #ffaaaa) brightness(130%);
 }
 
 .powerButton b

@@ -17,12 +17,13 @@ var Params = new class
       }
     }
     
-    Controllers.balance = this.GetCookie("balance");
-    if(isNaN(Controllers.balance) || Controllers.balance.length < 1 || parseInt(Controllers.balance)>4095) 
+    var balance = this.GetCookie("balance");
+    if(isNaN(balance) || balance.length < 1 || parseInt(balance)>4095) 
     {
-      Controllers.balance = 2047;
-      this.SetCookie("balance", Controllers.balance);
+      balance = 2047;
+      this.SetCookie("balance", balance);
     }
+    Controllers.SetBalance(balance, true, true);
     
     this.buttons = parseInt(this.GetCookie("totbutt"));
     if(isNaN(this.buttons)) this.buttons = 0;
@@ -30,13 +31,22 @@ var Params = new class
     this.dialog = null;
   }
   
-  AddSettingParam(dlg, title, value)
+  AddSettingParam(dlg, title, value, type, val1, val2)
   {
     var span1 = document.createElement("span");
     span1.appendChild(document.createTextNode(title));
     
     var inp1 = document.createElement("input");
     inp1.setAttribute("style", "text-align:center");
+    if(type === "range")
+    {
+      inp1.setAttribute("min", val1);
+      inp1.setAttribute("max", val2);
+      if(val2 - val1 < 5) inp1.setAttribute("step", 0.1);
+      inp1.addEventListener("change", ()=>{span1.innerHTML = title + " " + inp1.value;});
+      span1.appendChild(document.createTextNode(value));
+    }
+    inp1.setAttribute("type", type);
     inp1.setAttribute("value", value);
     
     dlg.appendChild(span1);
@@ -86,16 +96,25 @@ var Params = new class
       }      
     });
     this.dialog.appendChild(inpD);
-    let inp1 = this.AddSettingParam(this.dialog, "Name: ", ctrl.name);
+    let inp1 = this.AddSettingParam(this.dialog, "Name: ", ctrl.name, "text");
     inp1.addEventListener("change", ()=>{ctrl.name = inp1.value;});
-    let inp2 = this.AddSettingParam(this.dialog, "IP: ", ctrl.ip);
+    let inp2 = this.AddSettingParam(this.dialog, "IP: ", ctrl.ip, "url");
     inp2.addEventListener("change", ()=>{ctrl.ip = inp2.value;});
-    let inp3 = this.AddSettingParam(this.dialog, "Api Key: ", ctrl.apikey);
+    let inp3 = this.AddSettingParam(this.dialog, "Api Key: ", ctrl.apikey, "text");
     inp3.addEventListener("change", ()=>{ctrl.apikey = inp3.value;});
     inp3.addEventListener("contextmenu", (e)=>{
       document.execCommand('copy');
       alert("Text was copied");
     });
+    inp3.addEventListener("dblclick", (e)=>{
+      try{
+        document.execCommand('paste');
+      }
+      catch(err){}
+    });
+    let inp4 = this.AddSettingParam(this.dialog, "Gamma corr.: ", ctrl.gamma, "range", "0.5", "2.5");
+    inp4.addEventListener("change", ()=>{ctrl.gamma = inp4.value;});
+    
     var inpS = document.createElement("input");
     inpS.setAttribute("type", "button");
     inpS.setAttribute("value", "Save");
@@ -118,6 +137,7 @@ var Params = new class
     this.SetCookie("ctrl" + ctrl.id + "_name", ctrl.name);
     this.SetCookie("ctrl" + ctrl.id + "_ip", ctrl.ip);
     this.SetCookie("ctrl" + ctrl.id + "_apikey", ctrl.apikey);
+    this.SetCookie("ctrl" + ctrl.id + "_gamma", ctrl.gamma);
   }
   
   GetControllerParams(ctrl)
@@ -125,6 +145,8 @@ var Params = new class
     ctrl.name = this.GetCookie("ctrl" + ctrl.id + "_name");
     ctrl.ip = this.GetCookie("ctrl" + ctrl.id + "_ip");
     ctrl.apikey = this.GetCookie("ctrl" + ctrl.id + "_apikey");
+    ctrl.gamma = this.GetCookie("ctrl" + ctrl.id + "_gamma");
+    if(isNaN(parseFloat(ctrl.gamma)) || parseFloat(ctrl.gamma) < 0.2) ctrl.gamma = 1.0;
   }
   
   UpdateBalance(balance)

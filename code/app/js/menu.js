@@ -65,3 +65,8 @@ function showLog(el)
     logTimer = null;
   }
 }
+
+function PowerOff()
+{
+  window.close();
+}

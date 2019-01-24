@@ -8,6 +8,7 @@
     <script>
       var fileDownloaded = 0;
       var filesToDownload = 0;
+      var totalSize = 0;
       var html = "";
       var replaces = [];
       function req(url, deb, func)
@@ -29,6 +30,7 @@
         req(url, deb, (r)=>{
           html = r;
           fileDownloaded = 0;
+          totalSize = r.length;
           replaces = [];
           deb.innerHTML += "Got response (" + url + ", " + parseInt(r.length/1024) + "kb)<br>";
           var css = getCSS(r);
@@ -37,25 +39,31 @@
           deb.innerHTML += "Found " + jss.length + " js files<br>";
           filesToDownload = css.length + jss.length;
           deb.innerHTML += "download " + filesToDownload + " files...<br>";
+          console.log(css);
           for(let j in css)
           {
             var s1 = css[j].substring(css[j].indexOf("href=") + 5);
             var ch = s1[0];
             s1 = s1.substring(1, s1.indexOf(ch, 1));
+            console.log(s1);
             req(s1, deb, (a)=>{
               fileDownloaded++;
+              totalSize += a.length;
               replaces.push({find:css[j], with:"<style>" + a + "</style>\n"});
               if(fileDownloaded >= filesToDownload)
                 analyzeOver(deb);
             });
           }
+          console.log(jss);
           for(let j in jss)
           {
             var s1 = jss[j].substring(jss[j].indexOf("src=") + 4);
             var ch = s1[0];
             s1 = s1.substring(1, s1.indexOf(ch, 1));
+            console.log(s1);
             req(s1, deb, (a)=>{
               fileDownloaded++;
+              totalSize += a.length;
               var script = "<script>" + a + "<\/script>\n";
               replaces.push({find:jss[j], with:script});
               if(fileDownloaded >= filesToDownload)
@@ -81,7 +89,7 @@
         {
           html = html.replace(/  /g, " ");
         }
-        deb.innerHTML += "zipping...<br>";
+        deb.innerHTML += "zipping " + (parseInt(totalSize/102.4)/10.0) + " kb...<br>";
         var zip = pako.gzip(html, {level:3});
         console.log(zip);
         var hex = "#define webui_app_len " + zip.length + "\nconst uint8_t webui_app[] PROGMEM = {\n";
@@ -92,6 +100,8 @@
         }
         hex += "\n};";
         
+        deb.innerHTML += "finish, new size: " + (parseInt(zip.length/102.4)/10.0) + " kb...<br>";
+        
         deb.innerHTML += "<textarea style='width:90vw;height:30vh;'>" + html + "</textarea>";
         deb.innerHTML += "<textarea style='width:90vw;height:30vh;'>" + hex + "</textarea>";
       }
@@ -100,7 +110,6 @@
         var css = [];
         var reg = /\<link[^<.]*(\.css)[^\.]*\>/g;
         var css = html.match(reg);
-        console.log(css);
         return css;
       }
       function getJSS(html)
@@ -121,7 +130,7 @@
   </head>
   <body>
     <div>Combine webpages to a single gz:</div>
-    <input type='url' value='http://fredy.goldengames.ch/h801/' id='url' />
+    <input type='url' value='index.html' id='url' />
     <input type='button' value='Analyse and combine' onclick='analyze();' />
     <div id='debug'>
     </div>

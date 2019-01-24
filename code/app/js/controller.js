@@ -9,7 +9,6 @@ const GET_CH1    = 0x020;
 const GET_CH2    = 0x040;
 const GET_CH3    = 0x080;
 const GET_ALL    = GET_RELAY | GET_TRANS | GET_BRIGHT | GET_CHS;
-const GAMMA      = 0.9;
 
 const YELLOW_CHANNELS = [0,3];
 const WHITE_CHANNELS = [1,2];
@@ -34,7 +33,10 @@ class Controller
     this.APIfails = 0;
     this.APIRequests = 0;
     this.nextRequestTimer = null;
+    this.gamma = 1.0;
     this.status = { on:false, offline:true, trygoonline:false, loadingDiv:null };
+    var url = new URL(document.location.href);
+    if(url && url.hostname && url.hostname.split(".").length===4 && !isNaN(parseInt(url.hostname.split(".")[3]))) this.ip = url.hostname;
   }
   
   GetChannels()
@@ -133,7 +135,7 @@ class Controller
       else if(this.status.offline && this.status.trygoonline)
       {
         this.status.offline = false;
-        var v = Controllers.CalcReverseCorrection([this.channels[0],this.channels[1],this.channels[2],this.channels[3]], MAX_VALUE);
+        var v = Controllers.CalcReverseCorrection([this.channels[0],this.channels[1],this.channels[2],this.channels[3]], MAX_VALUE, this.gamma);
         this.maxBrightness = v.brightness;
         this.direction = v.direction;
         if(Math.abs(Controllers.balance - v.balance) > 10) // update light balance with current if it drifts too much
@@ -282,7 +284,7 @@ class Controller
     log += "Gamma correction...</p>";
     for(let j=0;j<4;j++)
     {
-      channels[j] = Controllers.GammaCorrection(channels[j], MAX_VALUE);
+      channels[j] = Controllers.GammaCorrection(channels[j], MAX_VALUE, this.gamma);
       var updated = 0;
       
       API.SendChannel(this.ip, this.apikey, CHANNELS_ID[j], channels[j], (a)=>{
@@ -338,6 +340,7 @@ var Controllers = new class
     var td;
     var tr = document.createElement("tr");
     td = document.createElement("th"); td.appendChild(document.createTextNode("trans.")); tr.appendChild(td);
+    td = document.createElement("th"); td.appendChild(document.createTextNode("gamma")); tr.appendChild(td);
     td = document.createElement("th"); td.appendChild(document.createTextNode("bright.")); tr.appendChild(td);
     td = document.createElement("th"); td.appendChild(document.createTextNode("CH #1")); tr.appendChild(td);
     td = document.createElement("th"); td.appendChild(document.createTextNode("CH #2")); tr.appendChild(td);
@@ -345,6 +348,7 @@ var Controllers = new class
     td = document.createElement("th"); td.appendChild(document.createTextNode("CH #4")); tr.appendChild(td);
     this.tableDiv.appendChild(tr);
     tr = document.createElement("tr");
+    td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
     td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
     td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
     td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
@@ -380,7 +384,7 @@ var Controllers = new class
     
     var ctrl = new Controller(id);
     this.controller.push(ctrl);
-    this.count++;
+    this.count++; 
     return ctrl;
   }
   
@@ -390,18 +394,18 @@ var Controllers = new class
     this.controller = this.controller.filter(function(c) {return c.id !== id;});
   }
   
-  GammaCorrection(value, maxOut)
+  GammaCorrection(value, maxOut, gamma)
   {
-    return parseInt(Math.pow(value * 1.0 / MAX_VALUE, GAMMA) * maxOut + 0.5);
+    return parseInt(Math.pow(value * 1.0 / MAX_VALUE, gamma) * maxOut + 0.5);
   }
   
-  CalcReverseCorrection(chs, maxOut)
+  CalcReverseCorrection(chs, maxOut, gamma)
   {
     var s = chs[0] + "," + chs[1] + "," + chs[2] + "," + chs[3];
-    var values = {brightness:0,direction:0,balance:0};
+    var values = {brightness:0,direction:0,balance:this.balance};
     for(var j=0;j<4;j++)
     {
-      chs[j] = Math.pow(chs[j] / maxOut, 1.0 / GAMMA) * MAX_VALUE;
+      chs[j] = Math.pow(chs[j] / maxOut, 1.0 / gamma) * MAX_VALUE;
     }
     var b = Math.max(chs[BOTTOM_CHANNELS[0]], chs[BOTTOM_CHANNELS[1]]);
     var t = Math.max(chs[TOP_CHANNELS[0]], chs[TOP_CHANNELS[1]]);
@@ -410,25 +414,25 @@ var Controllers = new class
     {
       values.direction = MAX_VALUE - (b / t) * (MAX_VALUE * 0.5);
       values.brightness = chs[TOP_CHANNELS[0]] + chs[TOP_CHANNELS[1]];
-      values.balance = MAX_VALUE * t / values.brightness;
+      //values.balance = MAX_VALUE * t / values.brightness;
     }
     else if(b===0)
     {
       values.balance = Controllers.balance;
       values.direction = MAX_VALUE / 2;
-      values.brightness = MAX_VALUE / 2;
+      //values.brightness = MAX_VALUE / 2;
     }
     else
     {
       values.direction = (t / b) * (MAX_VALUE * 0.5);
       values.brightness = chs[BOTTOM_CHANNELS[0]] + chs[BOTTOM_CHANNELS[1]];
-      values.balance = MAX_VALUE * b / values.brightness;
+      //values.balance = MAX_VALUE * b / values.brightness;
       
     }
     
     s += "<br>bottom: " + b + " top: " +  t + " max: " + maxOut;
     values.brightness = parseInt(Math.max(0, values.brightness));
-    values.balance = parseInt(values.balance);
+    //values.balance = parseInt(values.balance);
     values.direction = parseInt(values.direction);
     log += "<p>" + s + "<br>" + parseInt(chs[0]) + "," + parseInt(chs[1]) + "," + parseInt(chs[2]) + "," + parseInt(chs[3]) + "<br>Brightness: " + values.brightness + " - Balance: " + values.balance + " - Direction: " + values.direction + "</p>";
     return values;
@@ -458,7 +462,7 @@ var Controllers = new class
   {
     if(newBalance > MAX_VALUE) newBalance = MAX_VALUE;
     else if(newBalance < 0) newBalance = 0;
-    if(newBalance !== this.balance)
+    if(newBalance !== this.balance || force)
     {
       if(typeof Params !== 'undefined')
       {
@@ -467,7 +471,8 @@ var Controllers = new class
       this.balance = newBalance;
       if(test)
       {
-        this.activeController.UpdateChannels(true);
+        if(this.activeController != null)
+          this.activeController.UpdateChannels(true);
       }
       else
       {
@@ -616,11 +621,12 @@ var Controllers = new class
     
     var tds = this.tableDiv.getElementsByTagName("tr")[1].getElementsByTagName("td");
     tds[0].innerHTML = this.activeController.GetTransition() + " ms";
-    tds[1].innerHTML = parseInt(this.activeController.GetBrightness());
-    tds[2].innerHTML = parseInt(this.activeController.GetChannels()[0]);
-    tds[3].innerHTML = parseInt(this.activeController.GetChannels()[1]);
-    tds[4].innerHTML = parseInt(this.activeController.GetChannels()[2]);
-    tds[5].innerHTML = parseInt(this.activeController.GetChannels()[3]);
+    tds[1].innerHTML = parseInt(this.activeController.gamma * 100) / 100.0;
+    tds[2].innerHTML = parseInt(this.activeController.GetBrightness());
+    tds[3].innerHTML = parseInt(this.activeController.GetChannels()[0]);
+    tds[4].innerHTML = parseInt(this.activeController.GetChannels()[1]);
+    tds[5].innerHTML = parseInt(this.activeController.GetChannels()[2]);
+    tds[6].innerHTML = parseInt(this.activeController.GetChannels()[3]);
     
     var is = div.getElementsByTagName("i");
     
