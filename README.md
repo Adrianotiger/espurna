@@ -1,7 +1,8 @@
 # ESPurna FORK
 This is just a fork of the ESPurna project ([open original project](https://github.com/xoseperez/espurna)).
 It was focused on the H801 and Web-API.
-More info on '[FORK changes](fork.md)' document.
+
+More info on '[FORK changes](/FORK.md)' document.
 
 # ESPurna Firmware
 

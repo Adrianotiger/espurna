@@ -3,8 +3,11 @@ This is just a fork of the ESPurna project ([open original project](https://gith
 
 ## FOCUS
 It was focused on the H801 and Web-API.
+
 Settings are modified, so it compiles on the H801 module and allows Web-Api control over GET and POST.
-Added a Web-Interface (Web-App to control the lights).
+
+A Web-Interface was added (Web-App to control the lights). You can upload on your webserver or call it directly from the module (http://IPNUMBER/app)
+
 <b>Controls multiple modules with 4 defined channels over 3 sliders:</b>
 - Bottom LEDs: 2 strips: white and yellow
 - Top LEDs: 2 strips: white and yellow
@@ -15,7 +18,15 @@ Added a Web-Interface (Web-App to control the lights).
 ![screenshot](images/app_1.jpg)
 
 ## How it works
-... coming soon
+Once you set it up (WiFi SSID and pass), you have to open the module over the IP (192.168.1.XXX) and get or set the ApiKey.
+
+Then, you can open the app (http://92.168.1.XXX/app) and control the lights over this app. The app can also be installed on your phone by clicking: "add to home screen".
+
+### App
+- Firstly, you need to add a light: click on "EDIT MODE" in the menu and press "ADD LIGHT"
+- After the page was reloaded, click again on "EDIT MODE", now you can press the gear on the left side of the button
+- Set the IP and APIKey and save
+- Now, you can power on/off the module and control 4 channels over 3 sliders (color temperature is a global variable).
 
 ## Changes over the fork
 - To allow CORS, some http-headers was added
