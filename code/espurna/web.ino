@@ -31,7 +31,9 @@ Copyright (C) 2016-2018 by Xose Pérez <xose dot perez at gmail dot com>
     #include "static/index.all.html.gz.h"
 #endif
 
-#include "static/app.h801.html.gz.h"
+#if API_USE_APP
+    #include "static/app.h801.html.gz.h"
+#endif
 
 #endif // WEB_EMBEDDED
 
@@ -216,6 +218,7 @@ void _onHome(AsyncWebServerRequest *request) {
 }
 #endif
 
+#if API_USE_APP
 void _onApp(AsyncWebServerRequest *request) {
     webLog(request);
     if (request->header("If-Modified-Since").equals(_last_modified)) {
@@ -224,6 +227,7 @@ void _onApp(AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", webui_app, webui_app_len);
 
         response->addHeader("Content-Encoding", "gzip");
+        response->addHeader("Cache-Control", "public, max-age=31536000"); // 1 year
         response->addHeader("Last-Modified", _last_modified);
         response->addHeader("X-XSS-Protection", "1; mode=block");
         response->addHeader("X-Content-Type-Options", "nosniff");
@@ -231,6 +235,7 @@ void _onApp(AsyncWebServerRequest *request) {
         request->send(response);
     }
 }
+#endif
 
 #if ASYNC_TCP_SSL_ENABLED & WEB_SSL_ENABLED
 
@@ -429,7 +434,9 @@ void webSetup() {
         _server->on("/index.html", HTTP_GET, _onHome);
     #endif
 
-    _server->on("/app", HTTP_GET, _onApp);
+    #if API_USE_APP
+      _server->on("/app", HTTP_GET, _onApp);
+    #endif
 
     // Other entry points
     _server->on("/reset", HTTP_GET, _onReset);

@@ -537,6 +537,9 @@
 #define API_REAL_TIME_VALUES        0           // Show filtered/median values by default (0 => median, 1 => real time)
 #endif
 
+#ifndef API_USE_APP
+#define API_USE_APP                 1           // Copy app to flash (open web app over http://IP-NUMBER/app)
+#endif
 
 // -----------------------------------------------------------------------------
 // MDNS / LLMNR / NETBIOS / SSDP
