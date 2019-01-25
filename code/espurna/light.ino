@@ -957,7 +957,7 @@ void _lightAPISetup() {
 
     apiRegister(MQTT_TOPIC_CHANNELS,
         [](char * buffer, size_t len) {
-            for (unsigned int id=0; id<_light_channel.size(); id++) {
+            for (unsigned int id=0; id<min(4, (int)_light_channel.size()); id++) {
               if(id==0)
                 snprintf_P(buffer, len, PSTR("%03x"), _light_channel[id].target);
               else

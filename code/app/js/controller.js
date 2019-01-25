@@ -268,9 +268,13 @@ class Controller
     this.updating++;
     if(this.nextRequestTimer !== null) {clearTimeout(this.nextRequestTimer); this.nextRequestTimer = null; };
     this.status.loadingDiv.style.opacity = 1.0;
+        
+    var brightness = Controllers.GammaCorrection(this.maxBrightness, MAX_VALUE, this.gamma);
     
-    var channels = [this.maxBrightness,this.maxBrightness,this.maxBrightness,this.maxBrightness];
-    log += "<p>Update channels:<br>";
+    log += "<p>Gamma correction from " + this.maxBrightness + " to " + brightness + "<br>";
+    
+    var channels = [brightness,brightness,brightness,brightness];
+    log += "Update channels:<br>";
     if(this.direction <= MAX_VALUE / 2)
     {
       for(var j=0;j<2;j++)
@@ -288,19 +292,15 @@ class Controller
       channels[WHITE_CHANNELS[j]] *= (Controllers.balance * 1.0 / MAX_VALUE);
       channels[YELLOW_CHANNELS[j]] *= (1 - (Controllers.balance * 1.0 / MAX_VALUE));
     }
-    log += "Balance (" + Controllers.balance + "): " + channels[0] + ", " + channels[1] + ", " + channels[2] + ", " + channels[3] + "<br>";
-    
-    log += "Gamma correction...</p>";
-    for(let j=0;j<4;j++)
-      channels[j] = Controllers.GammaCorrection(channels[j], MAX_VALUE, this.gamma);
-    
+    for(var j=0;j<4;j++)
+      channels[j] = Math.ceil(channels[j]);
+    log += "Balance (" + Controllers.balance + "): " + channels[0] + ", " + channels[1] + ", " + channels[2] + ", " + channels[3] + "</p>";
       
     API.SendChannels(this.ip, this.apikey, channels[0], channels[1], channels[2], channels[3], (a)=>{
       var json = JSON.parse(a);
       var chls = json["channels"];
       if(chls.length >= 12)
       {
-        log += " - 3 - ";
         for(var j=0;j<4;j++)
         {
           var hex = chls.substring(j*3, j*3+3);
@@ -435,39 +435,39 @@ var Controllers = new class
   
   CalcReverseCorrection(chs, maxOut, gamma)
   {
-    var s = chs[0] + "," + chs[1] + "," + chs[2] + "," + chs[3];
+    var s = chs[0] + "," + chs[1] + "," + chs[2] + "," + chs[3] + "<br>";
     var values = {brightness:0,direction:0,balance:this.balance};
-    for(var j=0;j<4;j++)
-    {
-      chs[j] = Math.pow(chs[j] / maxOut, 1.0 / gamma) * MAX_VALUE;
-    }
+    
     var b = Math.max(chs[BOTTOM_CHANNELS[0]], chs[BOTTOM_CHANNELS[1]]);
     var t = Math.max(chs[TOP_CHANNELS[0]], chs[TOP_CHANNELS[1]]);
-    
+        
+    var maxValue = Math.max(b, t);
+    s+= "max Val: " + maxValue + "<br>";
     if(t > b)
     {
-      values.direction = MAX_VALUE - (b / t) * (MAX_VALUE * 0.5);
-      values.brightness = chs[TOP_CHANNELS[0]] + chs[TOP_CHANNELS[1]];
-      //values.balance = MAX_VALUE * t / values.brightness;
+      values.direction = MAX_VALUE * (1 - (b / t) * 0.5);
+      values.balance = Controllers.balance;
+      //maxValue = maxValue * 1 / (1 - (MAX_VALUE / values.balance));
     }
     else if(b===0)
     {
-      values.balance = Controllers.balance;
       values.direction = MAX_VALUE / 2;
-      //values.brightness = MAX_VALUE / 2;
+      values.balance = Controllers.balance;
     }
     else
     {
-      values.direction = (t / b) * (MAX_VALUE * 0.5);
-      values.brightness = chs[BOTTOM_CHANNELS[0]] + chs[BOTTOM_CHANNELS[1]];
-      //values.balance = MAX_VALUE * b / values.brightness;
-      
+      values.direction = MAX_VALUE * (t / b) * 0.5;
+      values.balance = Controllers.balance;
+      //maxValue = maxValue * 1 / (values.balance / MAX_VALUE);
     }
+    s+= "max Val: " + parseInt(maxValue) + " - gamma: " + gamma + "<br>";
+    
+    values.brightness = Math.pow(maxValue/maxOut, 1 / gamma) * MAX_VALUE;
     
     s += "<br>bottom: " + b + " top: " +  t + " max: " + maxOut;
-    values.brightness = parseInt(Math.max(0, values.brightness));
-    //values.balance = parseInt(values.balance);
-    values.direction = parseInt(values.direction);
+    values.brightness = Math.ceil(Math.max(0, values.brightness));
+    values.balance = Math.ceil(values.balance);
+    values.direction = Math.ceil(values.direction);
     log += "<p>" + s + "<br>" + parseInt(chs[0]) + "," + parseInt(chs[1]) + "," + parseInt(chs[2]) + "," + parseInt(chs[3]) + "<br>Brightness: " + values.brightness + " - Balance: " + values.balance + " - Direction: " + values.direction + "</p>";
     return values;
   }
