@@ -52,6 +52,19 @@ body
   background-color: yellow;
 }
 
+.dialogoverlay
+{
+  position:fixed;
+  top:0px;
+  left:0px;
+  width:100vw;
+  height:100vh;
+  background-color:rgba(210,210,230,0.7);
+  pointer-events:auto;
+  opacity:1.0;
+  transition:opacity 1s linear;
+}
+
 .dialog
 {
   width:80vw;
@@ -64,14 +77,15 @@ body
   border-radius:20px;
   border-style:ridge;
   border-width:2px;
-  position:fixed;
+  position:absolute;
   padding-top:20px;
   left:50vw;
   top:50vh;
-  transform:translate(-50%, -50%);
+  transform:translate(-50%, -250%);
   text-align:center;
   margin:0 auto;
   overflow:auto;
+  transition:all 0.8s ease-in-out;
   pointer-events:auto;
 }
 

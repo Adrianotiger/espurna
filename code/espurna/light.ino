@@ -412,8 +412,8 @@ unsigned int _toPWM(unsigned long value, bool gamma, bool reverse) {
     if (gamma) value = _light_gamma_table[value];
     if (LIGHT_MAX_VALUE != LIGHT_LIMIT_PWM) value = map(value, 0, LIGHT_MAX_VALUE, 0, LIGHT_LIMIT_PWM);
     if (reverse) value = LIGHT_LIMIT_PWM - value;
-    if(value < LIGHT_MAX_VALUE / 50) 
-      value = value > LIGHT_MAX_VALUE / 100 ? LIGHT_MAX_VALUE / 50 : 0;
+    if(value < LIGHT_MAX_VALUE / 40) 
+      value = value > LIGHT_MAX_VALUE / 80 ? LIGHT_MAX_VALUE / 40 : 0;
     return value;
 }
 
@@ -942,7 +942,6 @@ void _lightAPISetup() {
     }
 
     for (unsigned int id=0; id<_light_channel.size(); id++) {
-
         char key[15];
         snprintf_P(key, sizeof(key), PSTR("%s/%d"), MQTT_TOPIC_CHANNEL, id);
         apiRegister(key,
@@ -954,8 +953,38 @@ void _lightAPISetup() {
                 lightUpdate(true, true);
             }
         );
-
     }
+
+    apiRegister(MQTT_TOPIC_CHANNELS,
+        [](char * buffer, size_t len) {
+            for (unsigned int id=0; id<_light_channel.size(); id++) {
+              if(id==0)
+                snprintf_P(buffer, len, PSTR("%03x"), _light_channel[id].target);
+              else
+                snprintf_P(buffer, len, PSTR("%s%03x"), buffer, _light_channel[id].target);
+            }
+        },
+        [](const char * payload) {
+            char hn[4];
+            hn[3] = '\0';
+            unsigned char chn = 0;
+            for(int i=0;i<min(_light_channel.size()*3,strlen(payload));i++)
+            {
+              hn[i % 3] = payload[i];
+              if((i % 3) == 2)
+              {
+                int value = strtoul(hn, NULL, 16);
+                if(value < 0x1000 && value >= 0)
+                {
+                  //DEBUG_MSG_P(PSTR("[TEST] Value for #%d %d\n"), chn, value);
+                  lightChannel(chn, value);
+                }
+                chn++;
+              }
+            }
+            lightUpdate(true, true);
+        }
+    );
 
     apiRegister(MQTT_TOPIC_TRANSITION,
         [](char * buffer, size_t len) {

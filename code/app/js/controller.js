@@ -3,18 +3,19 @@ const MAX_VALUE = 4095;
 const GET_RELAY  = 0x001;
 const GET_TRANS  = 0x002;
 const GET_BRIGHT = 0x004;
-const GET_CHS    = 0x0F0;
+const GET_CHS    = 0x400;
 const GET_CH0    = 0x010;
 const GET_CH1    = 0x020;
 const GET_CH2    = 0x040;
 const GET_CH3    = 0x080;
+const GET_CH0123 = 0x0F0;
 const GET_ALL    = GET_RELAY | GET_TRANS | GET_BRIGHT | GET_CHS;
 
 const YELLOW_CHANNELS = [0,3];
 const WHITE_CHANNELS = [1,2];
 const TOP_CHANNELS = [2,3];
 const BOTTOM_CHANNELS = [0,1];
-const CHANNELS_ID = [1,2,3,4];
+const CHANNELS_ID = [0,1,2,3];
 
 class Controller
 {
@@ -85,8 +86,8 @@ class Controller
       var j = JSON.parse(a);
       if(j["error"]) 
       {
-        console.log(j);
-        console.error(j["error"] + "\n" + this.ip); 
+        //console.log(j);
+        //console.error(j["error"] + "\n" + this.ip); 
         log += "<p style='color:darkred'>" + j['error'] + "-" + this.ip + "</p>";
         this.status.offline = true;
         this.status.trygoonline = false;
@@ -110,6 +111,18 @@ class Controller
                               }
                               break;  
           case "transition" : this.transition = parseInt(j[param]); break;
+          case "channels"   : var chls = j[param];
+                              if(chls.length >= 12)
+                              {
+                                for(var j=0;j<4;j++)
+                                {
+                                  var hex = chls.substring(j*3, j*3+3);
+                                  var int = parseInt(hex, 16);
+                                  if(isNaN(int)) log += "<p>Unable to parse channel " + j + ", value " + hex + " (" + int + ")</p>";
+                                  else this.channels[j] = int;
+                                }
+                              }
+                              break; 
           case "channel/" + CHANNELS_ID[0] :  this.channels[0] = j[param]; break;
           case "channel/" + CHANNELS_ID[1] :  this.channels[1] = j[param]; break;
           case "channel/" + CHANNELS_ID[2] :  this.channels[2] = j[param]; break;
@@ -119,6 +132,7 @@ class Controller
     }
     catch(err)
     {
+      log += "<p> Can't go online: " + err + "</p>";
       this.status.trygoonline = false;
       this.status.offline = true;
     }
@@ -197,6 +211,12 @@ class Controller
     
     if((mask & GET_CHS) > 0)
     {
+      API.GetData(this.ip, this.apikey, "channels", (a)=>{
+        this.GotGetAnswer(a, "channels", mask);
+      });
+    }
+    else if((mask & GET_CH0123) > 0)
+    {
       for(let j=0;j<4;j++)
       {
         if(((mask & GET_CH0) << j) > 0)
@@ -269,19 +289,32 @@ class Controller
       channels[YELLOW_CHANNELS[j]] *= (1 - (Controllers.balance * 1.0 / MAX_VALUE));
     }
     log += "Balance (" + Controllers.balance + "): " + channels[0] + ", " + channels[1] + ", " + channels[2] + ", " + channels[3] + "<br>";
-    /*
-    if(Controllers.balance <= MAX_VALUE / 2)
-    {
-      for(var j=0;j<2;j++)
-        channels[WHITE_CHANNELS[j]] = channels[WHITE_CHANNELS[j]] * (Controllers.balance * 1.0 / parseInt(MAX_VALUE / 2));
-    }
-    else
-    {
-      for(var j=0;j<2;j++)
-        channels[YELLOW_CHANNELS[j]] = channels[YELLOW_CHANNELS[j]] * ((MAX_VALUE - Controllers.balance) * 1.0 / parseInt(MAX_VALUE / 2));
-    }
-    */
+    
     log += "Gamma correction...</p>";
+    for(let j=0;j<4;j++)
+      channels[j] = Controllers.GammaCorrection(channels[j], MAX_VALUE, this.gamma);
+    
+      
+    API.SendChannels(this.ip, this.apikey, channels[0], channels[1], channels[2], channels[3], (a)=>{
+      var json = JSON.parse(a);
+      var chls = json["channels"];
+      if(chls.length >= 12)
+      {
+        log += " - 3 - ";
+        for(var j=0;j<4;j++)
+        {
+          var hex = chls.substring(j*3, j*3+3);
+          var int = parseInt(hex, 16);
+          if(isNaN(int)) log += "<p>Unable to parse channel " + j + ", value " + hex + " (" + int + ")</p>";
+          else this.channels[j] = int;
+        }
+      }
+      Controllers.UpdateUIController(this);
+      this.updating--;
+      this.status.loadingDiv.style.opacity = 0.0;
+    }); 
+      
+    /*
     for(let j=0;j<4;j++)
     {
       channels[j] = Controllers.GammaCorrection(channels[j], MAX_VALUE, this.gamma);
@@ -298,6 +331,7 @@ class Controller
         }
       }); 
     }
+    */
   }
 };
 
@@ -454,7 +488,7 @@ var Controllers = new class
   {
     for(var j in this.controller)
     {
-      var success = this.controller[j].GetData(GET_ALL);
+      this.controller[j].GetData(GET_ALL);
     }
   }
   
@@ -471,7 +505,7 @@ var Controllers = new class
       this.balance = newBalance;
       if(test)
       {
-        if(this.activeController != null)
+        if(this.activeController !== null)
           this.activeController.UpdateChannels(true);
       }
       else
@@ -523,14 +557,18 @@ var Controllers = new class
       ctrl.status.loadingDiv = document.createElement("b");
       ctrl.status.loadingDiv.className = "loader";
       b.appendChild(ctrl.status.loadingDiv);
-      if(ctrl.status.offline)
+      if(ctrl.status.offline && ctrl.APIfails < 10)
         ctrl.status.loadingDiv.style.opacity = 1.0;
       div.appendChild(b);
       
       b.addEventListener("click", ()=>{
         if(ctrl.GetStatus().offline)
         {
-          var success = ctrl.GetData();
+          if(ctrl.APIfails >= 10)
+          {
+            ctrl.APIfails = 0;
+            ctrl.GetData(GET_ALL); 
+          }
         }
         else
         {

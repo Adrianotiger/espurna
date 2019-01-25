@@ -41,21 +41,33 @@ var API = new class
     this.SendPutRequest(link, params, callback);
   }
   
+  SendChannels(ip, apikey, ch0, ch1, ch2, ch3, callback)
+  {
+    var link = "http://" + ip + "/api/channels";
+    var param2hex = ("000" + ch0.toString(16)).substr(-3) + ("000" + ch1.toString(16)).substr(-3) + ("000" + ch2.toString(16)).substr(-3) + ("000" + ch3.toString(16)).substr(-3);
+    var params = "apikey=" + apikey + "&value=" + param2hex;
+    this.SendPutRequest(link, params, callback);
+  }
+  
+  GetJSON(r)
+  {
+    return r.replace(/:[ ]*(0[0-9a-fA-F]*)/g, ':"$1"');
+  }
+  
   RequestStateChange(req, callback)
   {
     if (req.readyState === 4) 
     {
       if(req.status === 200)
       {
-        
         var l = "<p>RESPONSE:";
-        var json = JSON.parse(req.response);
+        var json = JSON.parse(this.GetJSON(req.response));
         for(var k in json)
         {
           l += "- " + k + "=" + json[k];
         }
         log += l + "</p>";
-        if(typeof callback !== 'undefined') callback(req.response);
+        if(typeof callback !== 'undefined') callback(this.GetJSON(req.response));
       }
     }
   }
@@ -96,20 +108,19 @@ var API = new class
     {
       var req = new XMLHttpRequest();
       req.open("PUT", link + "?" + params, true);
-      req.onreadystatechange = function () 
-      {
+      req.onreadystatechange = ()=>{
         if (req.readyState === 4) 
         { 
           if(req.status === 200)
           {
             var l = "<p>RESPONSE: '";
-            var json = JSON.parse(req.response);
+            var json = JSON.parse(this.GetJSON(req.responseText));
             for(var k in json)
             {
               l += " - " + k + "'=" + json[k];
             }
             log += l + "</p>";
-            if(typeof callback !== 'undefined') callback(req.response);
+            if(typeof callback !== 'undefined') callback(this.GetJSON(req.responseText));
           }
           else
           {

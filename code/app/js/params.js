@@ -29,6 +29,7 @@ var Params = new class
     if(isNaN(this.buttons)) this.buttons = 0;
     
     this.dialog = null;
+    this.overlay = null;
   }
   
   AddSettingParam(dlg, title, value, type, val1, val2)
@@ -74,10 +75,16 @@ var Params = new class
   
   OpenControllerSettings(ctrl)
   {
-    if(this.dialog !== null) document.body.removeChild(this.dialog);
+    if(this.dialog !== null) 
+    {
+      document.body.removeChild(this.dialog);
+      document.body.removeChild(this.overlay);
+    }
     this.dialog = document.createElement("div");
     this.dialog.className = "dialog";
-    
+    this.overlay = document.createElement("div");
+    this.overlay.className = "dialogoverlay";
+        
     var inpD = document.createElement("input");
     inpD.setAttribute("type", "button");
     inpD.setAttribute("value", "Remove '" + ctrl.name + "'");
@@ -102,16 +109,6 @@ var Params = new class
     inp2.addEventListener("change", ()=>{ctrl.ip = inp2.value;});
     let inp3 = this.AddSettingParam(this.dialog, "Api Key: ", ctrl.apikey, "text");
     inp3.addEventListener("change", ()=>{ctrl.apikey = inp3.value;});
-    inp3.addEventListener("contextmenu", (e)=>{
-      document.execCommand('copy');
-      alert("Text was copied");
-    });
-    inp3.addEventListener("dblclick", (e)=>{
-      try{
-        document.execCommand('paste');
-      }
-      catch(err){}
-    });
     let inp4 = this.AddSettingParam(this.dialog, "Gamma corr.: ", ctrl.gamma, "range", "0.5", "2.5");
     inp4.addEventListener("change", ()=>{ctrl.gamma = inp4.value;});
     
@@ -124,12 +121,30 @@ var Params = new class
       {
         this.SaveControllerParams(Controllers.controller[j]);
       }
-      document.body.removeChild(this.dialog);
+      document.body.removeChild(this.overlay);
       this.dialog = null;
       Controllers.UpdateUI();
     });
     this.dialog.appendChild(inpS);
-    document.body.appendChild(this.dialog);
+    this.overlay.appendChild(this.dialog);
+    document.body.appendChild(this.overlay);
+    
+    this.dialog.addEventListener("click", (e)=>{
+      e.stopPropagation();
+    });
+    this.dialog.addEventListener("contextmenu", (e)=>{
+      e.stopPropagation();
+      return true;
+    });
+    this.overlay.addEventListener("click", ()=>{
+      this.dialog.style.transform = "translate(-50%, 200%)";
+      this.overlay.style.opacity = "0.0";
+      setTimeout(()=>{
+        document.body.removeChild(this.overlay);
+        this.dialog = null;
+      }, 1000);
+    });
+    setTimeout(()=> {this.dialog.style.transform = "translate(-50%, -50%)";}, 100);
   }
   
   SaveControllerParams(ctrl)
