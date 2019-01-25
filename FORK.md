@@ -32,6 +32,7 @@ Then, you can open the app (http://92.168.1.XXX/app) and control the lights over
 - To allow CORS, some http-headers was added
 - Parameters was changed to work with the H801 module and Web-Api
 - Workaround for the ESP8266 flickering problem with PWM on low values
+- 4 channels can be changed or requested with a single REST (example: channels?value=000aaa888777 as the value length limit is 15 bytes)
 
 
 ## Known issues
