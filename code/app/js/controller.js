@@ -299,7 +299,7 @@ class Controller
     API.SendChannels(this.ip, this.apikey, channels[0], channels[1], channels[2], channels[3], (a)=>{
       var json = JSON.parse(a);
       var chls = json["channels"];
-      if(chls.length >= 12)
+      if(chls && chls.length >= 12)
       {
         for(var j=0;j<4;j++)
         {
@@ -447,7 +447,6 @@ var Controllers = new class
     {
       values.direction = MAX_VALUE * (1 - (b / t) * 0.5);
       values.balance = Controllers.balance;
-      //maxValue = maxValue * 1 / (1 - (MAX_VALUE / values.balance));
     }
     else if(b===0)
     {
@@ -458,8 +457,11 @@ var Controllers = new class
     {
       values.direction = MAX_VALUE * (t / b) * 0.5;
       values.balance = Controllers.balance;
-      //maxValue = maxValue * 1 / (values.balance / MAX_VALUE);
     }
+    if(values.balance >= MAX_VALUE / 2)
+      maxValue *= 1.0 / (values.balance * 1.0 / MAX_VALUE);
+    else
+      maxValue *= 1.0 / (1.0 - values.balance * 1.0 / MAX_VALUE);
     s+= "max Val: " + parseInt(maxValue) + " - gamma: " + gamma + "<br>";
     
     values.brightness = Math.pow(maxValue/maxOut, 1 / gamma) * MAX_VALUE;

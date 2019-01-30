@@ -957,30 +957,31 @@ void _lightAPISetup() {
 
     apiRegister(MQTT_TOPIC_CHANNELS,
         [](char * buffer, size_t len) {
-            for (unsigned int id=0; id<min(4, (int)_light_channel.size()); id++) {
-              if(id==0)
-                snprintf_P(buffer, len, PSTR("%03x"), _light_channel[id].target);
-              else
-                snprintf_P(buffer, len, PSTR("%s%03x"), buffer, _light_channel[id].target);
+            // Note: this is faster than with snprintf and will not throw the watchdog on the ESP
+            char chH[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+            for (unsigned int id=0; id<(int)_light_channel.size(); id++) {
+              if(id*3 + 3 >= len) break;
+              buffer[id*3 + 0] =  chH[(_light_channel[id].target >> 8) & 0x0F];
+              buffer[id*3 + 1] =  chH[(_light_channel[id].target >> 4) & 0x0F];
+              buffer[id*3 + 2] =  chH[(_light_channel[id].target >> 0) & 0x0F];
             }
         },
         [](const char * payload) {
-            char hn[4];
-            hn[3] = '\0';
+            char chH[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+            char chh[] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
             unsigned char chn = 0;
-            for(int i=0;i<min(_light_channel.size()*3,strlen(payload));i++)
+            int hexVal;
+            for(int i=0;i<strlen(payload);i++)
             {
-              hn[i % 3] = payload[i];
+              if((i % 3) == 0) hexVal = 0;
+              for(int j=0;j<16;j++) {if(chH[j] == payload[i] || chh[j] == payload[i]) {hexVal = (hexVal << 4) | j; break;}}
               if((i % 3) == 2)
               {
-                int value = strtoul(hn, NULL, 16);
-                if(value < 0x1000 && value >= 0)
-                {
-                  //DEBUG_MSG_P(PSTR("[TEST] Value for #%d %d\n"), chn, value);
-                  lightChannel(chn, value);
-                }
+                //DEBUG_MSG_P(PSTR("[TEST] Value for #%d %d\n"), chn, value);
+                lightChannel(chn, hexVal);
                 chn++;
               }
+              if(i >= _light_channel.size()*3) break;
             }
             lightUpdate(true, true);
         }
