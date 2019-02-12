@@ -41,6 +41,13 @@ var API = new class
     this.SendPutRequest(link, params, callback);
   }
   
+  SendSlider(ip, apikey, slider, value, callback)
+  {
+    var link = "http://" + ip + "/api/" + slider;
+    var params = "apikey=" + apikey + "&value=" + parseInt(value);
+    this.SendPutRequest(link, params, callback);
+  }
+  
   SendChannels(ip, apikey, ch0, ch1, ch2, ch3, callback)
   {
     var link = "http://" + ip + "/api/channels";
@@ -66,7 +73,7 @@ var API = new class
         {
           l += "- " + k + "=" + json[k];
         }
-        log += l + "</p>";
+        AddToLog(l + "</p>");
         if(typeof callback !== 'undefined') callback(this.GetJSON(req.response));
       }
     }
@@ -75,7 +82,7 @@ var API = new class
   RequestStateError(req, callback, err)
   {
     if(typeof callback !== 'undefined') callback('{"error" : "' + (err && err.type && err.type==='timeout'?"Timeout":(req.responseText?req.responseText:err)) + '"}');
-    else log += "<p> STATUS ERROR: " + req.status + (err && err.type && err.type==='timeout'?"Timeout":req.responseText) + "</p>";
+    else AddToLog("<p> STATUS ERROR: " + req.status + (err && err.type && err.type==='timeout'?"Timeout":req.responseText) + "</p>");
   }
   
   SendGetRequest(link, callback)
@@ -90,7 +97,7 @@ var API = new class
       req.onerror = (e)=>{this.RequestStateError(req, callback, e); };
       req.ontimeout = (e)=>{this.RequestStateError(req, callback, e); };
       
-      log += "<p>Send (GET)<br>" + link + "</p>";
+      AddToLog("<p>Send (GET)<br>" + link + "</p>");
       
       req.setRequestHeader("Accept", "application/json");
       req.withCredentials = false;
@@ -119,18 +126,18 @@ var API = new class
             {
               l += " - " + k + "'=" + json[k];
             }
-            log += l + "</p>";
+            AddToLog(l + "</p>");
             if(typeof callback !== 'undefined') callback(this.GetJSON(req.responseText));
           }
           else
           {
-            log += "<p> STATUS ERROR: " + req.status + ", " + req.responseText + "</p>";
+            AddToLog("<p> STATUS ERROR: " + req.status + ", " + req.responseText + "</p>");
             if(typeof callback !== 'undefined') callback('{"error" : "' + req.responseText + '"}');
           }
         }
       };
       
-      log += "<p>Send <br>" + link + "<br>" + params + "</p>";
+      AddToLog("<p>Send <br>" + link + "<br>" + params + "</p>");
       
       req.setRequestHeader("Accept", "application/json");
       req.withCredentials = false;

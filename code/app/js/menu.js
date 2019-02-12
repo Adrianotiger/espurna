@@ -2,6 +2,7 @@
 var editMode = false;
 var expertMode = false;
 var logTimer = null;
+var log = {txt:"", up:false};
 
 function switchEditMode(el)
 {
@@ -51,10 +52,10 @@ function showLog(el)
   if(h < 10)
   {
     logTimer = setInterval(()=>{
-      var log2 = dd.innerHTML.length;
-      if(log2 < log.length)
+      if(!log.up)
       {
-        dd.innerHTML = log;
+        log.up = true;
+        dd.innerHTML = log.txt;
         dd.scrollTop = document.getElementById("debugdiv").scrollHeight;
       }
     }, 300);
@@ -64,6 +65,12 @@ function showLog(el)
     clearInterval(logTimer);
     logTimer = null;
   }
+}
+
+function AddToLog(txt)
+{
+  log.txt += txt;
+  log.up = false;
 }
 
 function PowerOff()

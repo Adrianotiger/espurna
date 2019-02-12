@@ -51,6 +51,14 @@ unsigned long _light_steps_left = 1;
 unsigned int _light_brightness = LIGHT_MAX_BRIGHTNESS;
 unsigned int _light_mireds = round((LIGHT_COLDWHITE_MIRED+LIGHT_WARMWHITE_MIRED)/2);
 
+#if API_USE_SLIDERS
+unsigned int _light_slider_brightness = 0;
+unsigned int _light_slider_color = 0;
+unsigned int _light_slider_direction = 0;
+int _light_slider_normalize = 1;
+unsigned int _light_slider_gamma = 100;
+#endif
+
 #if LIGHT_PROVIDER == LIGHT_PROVIDER_MY92XX
 #include <my92xx.h>
 my92xx * _my92xx;
@@ -893,9 +901,150 @@ void _lightWebSocketOnAction(uint32_t client_id, const char * action, JsonObject
 
 #endif
 
+unsigned int _lightGammaCorrection(unsigned int inVal, double gamma)
+{
+  return (int)(pow(inVal * 1.0 / LIGHT_MAX_VALUE, gamma) * LIGHT_MAX_VALUE + 0.5);
+}
+
+void _lightCalcChannels()
+{
+  unsigned int maxBright = _lightGammaCorrection(_light_slider_brightness, 1.6);
+  unsigned int chns[4] = {maxBright, maxBright, maxBright, maxBright};
+  
+  if(_light_slider_direction <= LIGHT_MAX_VALUE / 2)
+  {
+    chns[2] = chns[2] * (_light_slider_direction / (LIGHT_MAX_VALUE * 0.5));  // top
+    chns[3] = chns[3] * (_light_slider_direction / (LIGHT_MAX_VALUE *0.5));   // top
+  }
+  else
+  {
+    chns[0] = chns[0] * ((double)(LIGHT_MAX_VALUE - _light_slider_direction) / (LIGHT_MAX_VALUE * 0.5));  // top
+    chns[1] = chns[1] * ((double)(LIGHT_MAX_VALUE - _light_slider_direction) / (LIGHT_MAX_VALUE * 0.5));  // top
+  }
+
+  if(_light_slider_normalize > 0)
+  {
+    if(_light_slider_color <= LIGHT_MAX_VALUE / 2)
+    {
+      chns[0] *= 1.0; // yellow
+      chns[3] *= 1.0; // yellow
+      chns[1] *= ((double)_light_slider_color * 2.0 / LIGHT_MAX_VALUE); // white
+      chns[2] *= ((double)_light_slider_color * 2.0 / LIGHT_MAX_VALUE); // white
+    }
+    else
+    {
+      chns[1] *= 1.0; // white
+      chns[2] *= 1.0; // white
+      chns[0] *= ((double)(LIGHT_MAX_VALUE - _light_slider_color) * 2.0 / LIGHT_MAX_VALUE); // yellow
+      chns[3] *= ((double)(LIGHT_MAX_VALUE - _light_slider_color) * 2.0 / LIGHT_MAX_VALUE); // yellow
+    }
+  }
+  else
+  {
+    chns[1] *= ((double)_light_slider_color / LIGHT_MAX_VALUE); // white
+    chns[2] *= ((double)_light_slider_color / LIGHT_MAX_VALUE); // white
+    chns[0] *= (1.0 - (double)_light_slider_color / LIGHT_MAX_VALUE); // yellow
+    chns[3] *= (1.0 - (double)_light_slider_color / LIGHT_MAX_VALUE); // yellow
+  }
+  
+  lightChannel(0, chns[0]);
+  lightChannel(1, chns[1]);
+  lightChannel(2, chns[2]);
+  lightChannel(3, chns[3]);
+  
+  lightUpdate(true, true);
+}
+
+void _lightUpdateSliderBright(unsigned int val)
+{
+  if(val != _light_slider_brightness)
+  {
+    _light_slider_brightness = val;
+    _lightCalcChannels();
+    setSetting("sldBRIGHT", _light_slider_brightness);
+  }
+}
+
+void _lightUpdateSliderColor(unsigned int val)
+{
+  if(val != _light_slider_color)
+  {
+    _light_slider_color = val;
+    _lightCalcChannels();
+    setSetting("sldCOLOR", _light_slider_color);
+  }
+}
+
+void _lightUpdateSliderDirection(unsigned int val)
+{
+  if(val != _light_slider_direction)
+  {
+    _light_slider_direction = val;
+    _lightCalcChannels();
+    setSetting("sldDIR", _light_slider_direction);
+  }
+}
+
 #if API_SUPPORT
 
 void _lightAPISetup() {
+
+    #if API_USE_SLIDERS
+      _light_slider_brightness = getSetting("sldBRIGHT", LIGHT_MAX_VALUE / 2).toInt();
+      _light_slider_color = getSetting("sldCOLOR", LIGHT_MAX_VALUE / 2).toInt();
+      _light_slider_direction = getSetting("sldDIR", LIGHT_MAX_VALUE / 2).toInt();
+      _light_slider_normalize = getSetting("sldNOR", 1).toInt();
+      _light_slider_gamma = getSetting("sldGAMMA", 100).toInt();
+
+      apiRegister(MQTT_TOPIC_SLIDER_BRIGHT,
+          [](char * buffer, size_t len) {
+              snprintf_P(buffer, len, PSTR("%d"), _light_slider_brightness);
+          },
+          [](const char * payload) {
+              _lightUpdateSliderBright(atoi(payload));
+          }
+      );
+
+      apiRegister(MQTT_TOPIC_SLIDER_COLOR,
+          [](char * buffer, size_t len) {
+              snprintf_P(buffer, len, PSTR("%d"), _light_slider_color);
+          },
+          [](const char * payload) {
+              _lightUpdateSliderColor(atoi(payload));
+          }
+      );
+
+      apiRegister(MQTT_TOPIC_SLIDER_DIRECTION,
+          [](char * buffer, size_t len) {
+              snprintf_P(buffer, len, PSTR("%d"), _light_slider_direction);
+          },
+          [](const char * payload) {
+              _lightUpdateSliderDirection(atoi(payload));
+          }
+      );
+
+      apiRegister(MQTT_TOPIC_SLIDER_NORMALIZE,
+          [](char * buffer, size_t len) {
+              snprintf_P(buffer, len, PSTR("%d"), _light_slider_normalize);
+          },
+          [](const char * payload) {
+              _light_slider_normalize = atoi(payload);
+              _lightCalcChannels();
+              setSetting("sldNOR", _light_slider_normalize);
+          }
+      );
+
+      apiRegister(MQTT_TOPIC_SLIDER_GAMMA,
+          [](char * buffer, size_t len) {
+              snprintf_P(buffer, len, PSTR("%d"), _light_slider_gamma);
+          },
+          [](const char * payload) {
+              _light_slider_gamma = atoi(payload);
+              _lightCalcChannels();
+              setSetting("sldGAMMA", _light_slider_gamma);
+          }
+      );
+    #endif
 
     if (_light_has_color) {
 

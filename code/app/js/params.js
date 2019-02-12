@@ -47,6 +47,10 @@ var Params = new class
       inp1.addEventListener("change", ()=>{span1.innerHTML = title + " " + inp1.value;});
       span1.appendChild(document.createTextNode(value));
     }
+    if(type === "checkbox")
+    {
+      if(value === true) inp1.setAttribute("checked", true);
+    }
     inp1.setAttribute("type", type);
     inp1.setAttribute("value", value);
     
@@ -109,8 +113,6 @@ var Params = new class
     inp2.addEventListener("change", ()=>{ctrl.ip = inp2.value;});
     let inp3 = this.AddSettingParam(this.dialog, "Api Key: ", ctrl.apikey, "text");
     inp3.addEventListener("change", ()=>{ctrl.apikey = inp3.value;});
-    let inp4 = this.AddSettingParam(this.dialog, "Gamma corr.: ", ctrl.gamma, "range", "0.5", "2.5");
-    inp4.addEventListener("change", ()=>{ctrl.gamma = inp4.value;});
     
     var inpS = document.createElement("input");
     inpS.setAttribute("type", "button");
@@ -124,6 +126,64 @@ var Params = new class
       document.body.removeChild(this.overlay);
       this.dialog = null;
       Controllers.UpdateUI();
+    });
+    this.dialog.appendChild(inpS);
+    this.overlay.appendChild(this.dialog);
+    document.body.appendChild(this.overlay);
+    
+    this.dialog.addEventListener("click", (e)=>{
+      e.stopPropagation();
+    });
+    this.dialog.addEventListener("contextmenu", (e)=>{
+      e.stopPropagation();
+      return true;
+    });
+    this.overlay.addEventListener("click", ()=>{
+      this.dialog.style.transform = "translate(-50%, 200%)";
+      this.overlay.style.opacity = "0.0";
+      setTimeout(()=>{
+        document.body.removeChild(this.overlay);
+        this.dialog = null;
+      }, 1000);
+    });
+    setTimeout(()=> {this.dialog.style.transform = "translate(-50%, -50%)";}, 100);
+  }
+  
+  OpenControllerConfig(ctrl)
+  {
+    if(this.dialog !== null) 
+    {
+      document.body.removeChild(this.dialog);
+      document.body.removeChild(this.overlay);
+    }
+    this.dialog = document.createElement("div");
+    this.dialog.className = "dialog";
+    this.overlay = document.createElement("div");
+    this.overlay.className = "dialogoverlay";
+    
+    let inp4 = this.AddSettingParam(this.dialog, "Gamma corr.: ", ctrl.gamma, "range", "0.5", "2.5");
+    
+    let inp5 = this.AddSettingParam(this.dialog, "Normalize color: ", ctrl.normalize, "checkbox");
+    
+    var inpS = document.createElement("input");
+    inpS.setAttribute("type", "button");
+    inpS.setAttribute("value", "Save");
+    inpS.setAttribute("style", "margin-top:2vh;");
+    inpS.addEventListener("click", ()=>{
+      API.SendSlider(ctrl.ip, ctrl.apikey, "sl_gamma", parseInt(inp4.value * 100.0), (a)=>{
+        var json = JSON.parse(a);
+        var sliderValue = json["sl_gamma"];
+        ctrl.gamma = sliderValue / 100.0;
+      }); 
+      
+      API.SendSlider(ctrl.ip, ctrl.apikey, "sl_nor", (inp5.checked) ? 1 : 0, (a)=>{
+        var json = JSON.parse(a);
+        var sliderValue = json["sl_nor"];
+        ctrl.normalize = sliderValue > 0;
+      }); 
+      
+      document.body.removeChild(this.overlay);
+      this.dialog = null;
     });
     this.dialog.appendChild(inpS);
     this.overlay.appendChild(this.dialog);

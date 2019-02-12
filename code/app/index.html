@@ -18,10 +18,10 @@
     <!--<link rel="manifest" href="manifest.json" type="application/manifest+json">-->
     <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIkg4MDEgUmVtb3RlIiwKICAic2hvcnRfbmFtZSI6ICJIODAxIFJlbW90ZSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMDAwIiwKICAiZGVzY3JpcHRpb24iOiAiSDgwMSBMaWdodCBDb250cm9sbGVyIiwKICAib3JpZW50YXRpb24iOiAicG9ydHJhaXQiLAogICJpY29ucyI6IFtdCn0=" type="application/manifest+json">
     
-    <script src='js/api.js?v=24'></script>
-    <script src='js/controller.js?v=22'></script>
-    <script src='js/params.js?v=20'></script>
-    <script src='js/menu.js?v=20'></script> 
+    <script src='js/api.js?v=27'></script>
+    <script src='js/controller.js?v=29'></script>
+    <script src='js/params.js?v=22'></script>
+    <script src='js/menu.js?v=23'></script> 
     
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -35,14 +35,11 @@
   <body>    
     <div class='maindiv'>
       
-      <div style='display:block;position:absolute;text-align:center;width:90vw;height:43vh;left:2vw;top:2vh;border-style:ridge;border-width:1px;border-radius:2px;overflow:auto;pointer-events:auto;' id='lightsdiv'>
-      </div>
+      <div style='display:block;position:absolute;text-align:center;width:90vw;height:43vh;left:2vw;top:2vh;border-style:ridge;border-width:1px;border-radius:2px;overflow:auto;pointer-events:auto;' id='lightsdiv'></div>
       
-      <div style='display:block;position:absolute;text-align:center;width:90vw;height:38vh;left:2vw;bottom:3vh;border-style:ridge;border-width:1px;border-radius:2px;padding-top:3vh;opacity:0.0;transition:opacity 1s ease-in-out;' id='slidersdiv'>
-      </div>
+      <div style='display:block;position:absolute;text-align:center;width:90vw;height:38vh;left:2vw;bottom:3vh;border-style:ridge;border-width:1px;border-radius:2px;padding-top:3vh;opacity:0.0;transition:opacity 1s ease-in-out;overflow:hidden;' id='slidersdiv'></div>
       
-      <div id='debugdiv' class='debugdiv' ondblclick="if(parseInt(this.style.height)>55){this.style.height='45vh';this.style.bottom='45vh';}else{this.style.height='80vh';this.style.bottom='0vh';}">
-      </div>
+      <div id='debugdiv' class='debugdiv' ondblclick="if(parseInt(this.style.height)>55){this.style.height='45vh';this.style.bottom='45vh';}else{this.style.height='80vh';this.style.bottom='0vh';}"></div>
     </div>
     
     <div class='menu' onclick="">
@@ -69,12 +66,12 @@
     </div>
     
     <script>
-      var log = "LOG:";
+      AddToLog("Log:");
       
       window.addEventListener("error", (e) =>{
-          log += "<p style='background-color:#ff8080;'>" + e.message + "(" + e.filename.substring(e.filename.lastIndexOf("/") + 1) + " - line:" + e.lineno + ")</p>";
+          AddToLog("<p style='background-color:#ff8080;'>" + e.message + "(" + e.filename.substring(e.filename.lastIndexOf("/") + 1) + " - line:" + e.lineno + ")</p>");
       });
-      
+            
       //API.SendRequest("X", "Y", "GET2");
       document.addEventListener("DOMContentLoaded", ()=>{
         Controllers.UpdateUI();

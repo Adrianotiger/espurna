@@ -541,6 +541,10 @@
 #define API_USE_APP                 1           // Copy app to flash (open web app over http://IP-NUMBER/app)
 #endif
 
+#ifndef API_USE_SLIDERS
+#define API_USE_SLIDERS             1           // Use sliders to change 4 channels at the same time
+#endif
+
 // -----------------------------------------------------------------------------
 // MDNS / LLMNR / NETBIOS / SSDP
 // -----------------------------------------------------------------------------
@@ -823,6 +827,11 @@
 // Light module
 #define MQTT_TOPIC_CHANNEL          "channel"
 #define MQTT_TOPIC_CHANNELS         "channels"
+#define MQTT_TOPIC_SLIDER_BRIGHT    "sl_bright"
+#define MQTT_TOPIC_SLIDER_COLOR     "sl_color"
+#define MQTT_TOPIC_SLIDER_DIRECTION "sl_dir"
+#define MQTT_TOPIC_SLIDER_NORMALIZE "sl_nor"
+#define MQTT_TOPIC_SLIDER_GAMMA     "sl_gamma"
 #define MQTT_TOPIC_COLOR_RGB        "rgb"
 #define MQTT_TOPIC_COLOR_HSV        "hsv"
 #define MQTT_TOPIC_ANIM_MODE        "anim_mode"
