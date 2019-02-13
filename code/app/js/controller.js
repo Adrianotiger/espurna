@@ -17,10 +17,10 @@ const GET_SL_GAM = 0x1000;
 const GET_SLIDERS= 0x1F00;
 const GET_ALL    = GET_RELAY | GET_TRANS | GET_BRIGHT | GET_SLIDERS;
 
-//const YELLOW_CHANNELS = [0,3];
-//const WHITE_CHANNELS = [1,2];
-//const TOP_CHANNELS = [2,3];
-//const BOTTOM_CHANNELS = [0,1];
+/*const YELLOW_CHANNELS = [0,3];*/
+/*const WHITE_CHANNELS = [1,2];*/
+/*const TOP_CHANNELS = [2,3];*/
+/*const BOTTOM_CHANNELS = [0,1];*/
 const CHANNELS_ID = [0,1,2,3];
 
 class Controller
@@ -772,21 +772,21 @@ var Controllers = new class
       return;
     }
     
-    this.sliders[0].value = this.activeController.maxBrightness;
-    this.sliders[0].func = (v, t)=>{this.activeController.SetBrightness(v, t);};
+    this.sliders[0].value = controller.maxBrightness;
+    this.sliders[0].func = (v, t)=>{controller.SetBrightness(v, t);};
       
     this.sliders[1].value = this.balance;
     this.sliders[1].func = (v, t)=>{this.SetBalance(v, t, false);};
       
-    this.sliders[2].value = this.activeController.direction;
-    this.sliders[2].func = (v, t)=>{this.activeController.SetDirection(v, t);};
+    this.sliders[2].value = controller.direction;
+    this.sliders[2].func = (v, t)=>{controller.SetDirection(v, t);};
     
     var tds = this.tableDiv.getElementsByTagName("tr")[1].getElementsByTagName("td");
-    tds[0].innerHTML = this.activeController.GetStatus().on ? "ON" : "OFF";       // relay
-    tds[1].innerHTML = this.activeController.GetTransition() + " ms";        // transition
-    tds[2].innerHTML = parseInt(this.activeController.gamma * 100) / 100.0;  // gamma
-    tds[3].innerHTML = parseInt(this.activeController.brightness);           // brightness
-    tds[4].innerHTML = this.activeController.normalize ? "ON" : "OFF";       // normalize
+    tds[0].innerHTML = controller.GetStatus().on ? "ON" : "OFF";  // relay
+    tds[1].innerHTML = controller.GetTransition() + " ms";        // transition
+    tds[2].innerHTML = parseInt(controller.gamma * 100) / 100.0;  // gamma
+    tds[3].innerHTML = parseInt(controller.brightness);           // brightness
+    tds[4].innerHTML = controller.normalize ? "ON" : "OFF";       // normalize
     
     var is = div.getElementsByTagName("i");
     

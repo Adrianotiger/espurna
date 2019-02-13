@@ -908,7 +908,7 @@ unsigned int _lightGammaCorrection(unsigned int inVal, double gamma)
 
 void _lightCalcChannels()
 {
-  unsigned int maxBright = _lightGammaCorrection(_light_slider_brightness, 1.6);
+  unsigned int maxBright = _lightGammaCorrection(_light_slider_brightness, _light_slider_gamma / 100.0);
   unsigned int chns[4] = {maxBright, maxBright, maxBright, maxBright};
   
   if(_light_slider_direction <= LIGHT_MAX_VALUE / 2)
