@@ -89,7 +89,7 @@
 //------------------------------------------------------------------------------
 
 #ifndef DEBUG_TELNET_SUPPORT
-#define DEBUG_TELNET_SUPPORT    1               // Enable telnet debug log (will only work if TELNET_SUPPORT is also 1)
+#define DEBUG_TELNET_SUPPORT    0               // Enable telnet debug log (will only work if TELNET_SUPPORT is also 1)
 #endif
 
 //------------------------------------------------------------------------------
@@ -103,7 +103,7 @@
 //------------------------------------------------------------------------------
 
 #ifndef TELNET_SUPPORT
-#define TELNET_SUPPORT          1               // Enable telnet support by default (3.34Kb)
+#define TELNET_SUPPORT          0               // Enable telnet support by default (3.34Kb)
 #endif
 
 #ifndef TELNET_STA
@@ -122,7 +122,7 @@
 //------------------------------------------------------------------------------
 
 #ifndef TERMINAL_SUPPORT
-#define TERMINAL_SUPPORT         1              // Enable terminal commands (0.97Kb)
+#define TERMINAL_SUPPORT         0              // Enable terminal commands (0.97Kb)
 #endif
 
 #define TERMINAL_BUFFER_SIZE     128            // Max size for commands commands
