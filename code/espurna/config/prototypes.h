@@ -157,6 +157,7 @@ bool settingsRestoreJson(JsonObject& data);
 // -----------------------------------------------------------------------------
 char * ltrim(char * s);
 void nice_delay(unsigned long ms);
+bool inline eraseSDKConfig();
 
 #define ARRAYINIT(type, name, ...) type name[] = {__VA_ARGS__};
 
@@ -184,6 +185,8 @@ void webRequestRegister(web_request_callback_f callback);
 #if WEB_SUPPORT
     typedef std::function<void(JsonObject&)> ws_on_send_callback_f;
     void wsOnSendRegister(ws_on_send_callback_f callback);
+    void wsSend(uint32_t, JsonObject& root);
+    void wsSend(JsonObject& root);
     void wsSend(ws_on_send_callback_f sender);
 
     typedef std::function<void(uint32_t, const char *, JsonObject&)> ws_on_action_callback_f;
@@ -194,6 +197,7 @@ void webRequestRegister(web_request_callback_f callback);
 
     bool wsConnected();
     bool wsConnected(uint32_t);
+    bool wsDebugSend(const char*, const char*);
 #else
     #define ws_on_send_callback_f void *
     #define ws_on_action_callback_f void *

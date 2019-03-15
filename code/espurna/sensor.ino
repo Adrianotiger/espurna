@@ -2,7 +2,7 @@
 
 SENSOR MODULE
 
-Copyright (C) 2016-2018 by Xose Pérez <xose dot perez at gmail dot com>
+Copyright (C) 2016-2019 by Xose Pérez <xose dot perez at gmail dot com>
 
 */
 
@@ -102,6 +102,31 @@ double _magnitudeProcess(unsigned char type, double value) {
 
 #if WEB_SUPPORT
 
+template<typename T> void _sensorWebSocketMagnitudes(JsonObject& root, T prefix) {
+
+    // ws produces flat list <prefix>Magnitudes
+    String ws_name = String(prefix);
+    ws_name.concat("Magnitudes");
+
+    // config uses <prefix>Magnitude<index> (cut 's')
+    String conf_name = ws_name.substring(0, ws_name.length() - 1);
+
+    JsonObject& list = root.createNestedObject(ws_name);
+    list["size"] = magnitudeCount();
+
+    JsonArray& name = list.createNestedArray("name");
+    JsonArray& type = list.createNestedArray("type");
+    JsonArray& index = list.createNestedArray("index");
+    JsonArray& idx = list.createNestedArray("idx");
+
+    for (unsigned char i=0; i<magnitudeCount(); ++i) {
+        name.add(magnitudeName(i));
+        type.add(magnitudeType(i));
+        index.add(magnitudeIndex(i));
+        idx.add(getSetting(conf_name, i, 0).toInt());
+    }
+}
+
 bool _sensorWebSocketOnReceive(const char * key, JsonVariant& value) {
     if (strncmp(key, "pwr", 3) == 0) return true;
     if (strncmp(key, "sns", 3) == 0) return true;
@@ -118,27 +143,36 @@ void _sensorWebSocketSendData(JsonObject& root) {
     bool hasHumidity = false;
     bool hasMICS = false;
 
-    JsonArray& list = root.createNestedArray("magnitudes");
-    for (unsigned char i=0; i<_magnitudes.size(); i++) {
+    JsonObject& magnitudes = root.createNestedObject("magnitudes");
+    uint8_t size = 0;
+
+    JsonArray& index = magnitudes.createNestedArray("index");
+    JsonArray& type = magnitudes.createNestedArray("type");
+    JsonArray& value = magnitudes.createNestedArray("value");
+    JsonArray& units = magnitudes.createNestedArray("units");
+    JsonArray& error = magnitudes.createNestedArray("error");
+    JsonArray& description = magnitudes.createNestedArray("description");
+
+    for (unsigned char i=0; i<magnitudeCount(); i++) {
 
         sensor_magnitude_t magnitude = _magnitudes[i];
         if (magnitude.type == MAGNITUDE_EVENT) continue;
+        ++size;
 
         unsigned char decimals = _magnitudeDecimals(magnitude.type);
         dtostrf(magnitude.current, 1-sizeof(buffer), decimals, buffer);
 
-        JsonObject& element = list.createNestedObject();
-        element["index"] = int(magnitude.global);
-        element["type"] = int(magnitude.type);
-        element["value"] = String(buffer);
-        element["units"] = magnitudeUnits(magnitude.type);
-        element["error"] = magnitude.sensor->error();
+        index.add<uint8_t>(magnitude.global);
+        type.add<uint8_t>(magnitude.type);
+        value.add(buffer);
+        units.add(magnitudeUnits(magnitude.type));
+        error.add(magnitude.sensor->error());
 
         if (magnitude.type == MAGNITUDE_ENERGY) {
             if (_sensor_energy_reset_ts.length() == 0) _sensorResetTS();
-            element["description"] = magnitude.sensor->slot(magnitude.local) + String(" (since ") + _sensor_energy_reset_ts + String(")");
+            description.add(magnitude.sensor->slot(magnitude.local) + String(" (since ") + _sensor_energy_reset_ts + String(")"));
         } else {
-            element["description"] = magnitude.sensor->slot(magnitude.local);
+            description.add(magnitude.sensor->slot(magnitude.local));
         }
 
         if (magnitude.type == MAGNITUDE_TEMPERATURE) hasTemperature = true;
@@ -147,6 +181,8 @@ void _sensorWebSocketSendData(JsonObject& root) {
         if (magnitude.type == MAGNITUDE_CO || magnitude.type == MAGNITUDE_NO2) hasMICS = true;
         #endif
     }
+
+    magnitudes["size"] = size;
 
     if (hasTemperature) root["temperatureVisible"] = 1;
     if (hasHumidity) root["humidityVisible"] = 1;
@@ -210,7 +246,7 @@ void _sensorWebSocketStart(JsonObject& root) {
 
     }
 
-    if (_magnitudes.size() > 0) {
+    if (magnitudeCount()) {
         root["snsVisible"] = 1;
         //root["apiRealTime"] = _sensor_realtime;
         root["pwrUnits"] = _sensor_power_units;
@@ -602,6 +638,8 @@ void _sensorLoad() {
         MHZ19Sensor * sensor = new MHZ19Sensor();
         sensor->setRX(MHZ19_RX_PIN);
         sensor->setTX(MHZ19_TX_PIN);
+        if (getSetting("mhz19CalibrateAuto", 0).toInt() == 1)
+            sensor->setCalibrateAuto(true);
         _sensors.push_back(sensor);
     }
     #endif
@@ -1366,7 +1404,7 @@ void sensorLoop() {
 
         // Get the first relay state
         #if SENSOR_POWER_CHECK_STATUS
-            bool relay_off = (relayCount() > 0) && (relayStatus(0) == 0);
+            bool relay_off = (relayCount() == 1) && (relayStatus(0) == 0);
         #endif
 
         // Get readings

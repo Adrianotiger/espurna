@@ -2,7 +2,7 @@
 
 NTP MODULE
 
-Copyright (C) 2016-2018 by Xose Pérez <xose dot perez at gmail dot com>
+Copyright (C) 2016-2019 by Xose Pérez <xose dot perez at gmail dot com>
 
 */
 
@@ -34,7 +34,6 @@ void _ntpWebSocketOnSend(JsonObject& root) {
     root["ntpOffset"] = getSetting("ntpOffset", NTP_TIME_OFFSET).toInt();
     root["ntpDST"] = getSetting("ntpDST", NTP_DAY_LIGHT).toInt() == 1;
     root["ntpRegion"] = getSetting("ntpRegion", NTP_DST_REGION).toInt();
-    if (ntpSynced()) root["now"] = now();
 }
 
 #endif
