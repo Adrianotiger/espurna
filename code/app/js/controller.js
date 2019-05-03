@@ -566,8 +566,10 @@ var Controllers = new class
     td = document.createElement("th"); td.appendChild(document.createTextNode("gamma")); tr.appendChild(td);
     td = document.createElement("th"); td.appendChild(document.createTextNode("bright.")); tr.appendChild(td);
     td = document.createElement("th"); td.appendChild(document.createTextNode("norm.")); tr.appendChild(td);
+    td = document.createElement("th"); td.appendChild(document.createTextNode("inv.")); tr.appendChild(td);
     this.tableDiv.appendChild(tr);
     tr = document.createElement("tr");
+    td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
     td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
     td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
     td = document.createElement("td"); td.appendChild(document.createTextNode("-")); tr.appendChild(td);
@@ -797,6 +799,7 @@ var Controllers = new class
     tds[2].innerHTML = parseInt(controller.gamma * 100) / 100.0;  // gamma
     tds[3].innerHTML = parseInt(controller.brightness);           // brightness
     tds[4].innerHTML = controller.normalize ? "ON" : "OFF";       // normalize
+    tds[5].innerHTML = controller.invertPWM ? "YES" : "NO";       // normalize
     
     var is = div.getElementsByTagName("i");
     

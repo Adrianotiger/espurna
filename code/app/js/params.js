@@ -184,6 +184,12 @@ var Params = new class
         ctrl.normalize = sliderValue > 0;
       }); 
       
+      API.SendSlider(ctrl.ip, ctrl.apikey, "sl_invpwm", (inp6.checked) ? 1 : 0, (a)=>{
+        var json = JSON.parse(a);
+        var sliderValue = json["sl_invpwm"];
+        ctrl.invertPWM = sliderValue > 0;
+      });
+      
       document.body.removeChild(this.overlay);
       this.dialog = null;
     });

@@ -952,7 +952,7 @@ void _lightCalcChannels()
     chns[3] *= (1.0 - (double)_light_slider_color / LIGHT_MAX_VALUE); // yellow
   }
 
-  if(_light_slider_invert_pwm)
+  if(_light_slider_invert_pwm > 0)
   {
     chns[1] = LIGHT_MAX_VALUE - chns[1]; // white
     chns[2] = LIGHT_MAX_VALUE - chns[2]; // white
