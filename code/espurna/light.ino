@@ -696,6 +696,7 @@ void lightUpdate(bool save, bool forward, bool group_forward) {
     // Update channels
     for (unsigned int i=0; i < _light_channel.size(); i++) {
         _light_channel[i].target = _light_state && _light_channel[i].state ? _light_channel[i].value : 0;
+        if(_light_slider_invert_pwm) _light_channel[i].target = LIGHT_MAX_BRIGHTNESS - _light_channel[i].target;
         //DEBUG_MSG_P("[LIGHT] Channel #%u target value: %u\n", i, _light_channel[i].target);
     }
 
@@ -950,14 +951,6 @@ void _lightCalcChannels()
     chns[2] *= ((double)_light_slider_color / LIGHT_MAX_VALUE); // white
     chns[0] *= (1.0 - (double)_light_slider_color / LIGHT_MAX_VALUE); // yellow
     chns[3] *= (1.0 - (double)_light_slider_color / LIGHT_MAX_VALUE); // yellow
-  }
-
-  if(_light_slider_invert_pwm > 0)
-  {
-    chns[1] = LIGHT_MAX_VALUE - chns[1]; // white
-    chns[2] = LIGHT_MAX_VALUE - chns[2]; // white
-    chns[0] = LIGHT_MAX_VALUE - chns[0]; // yellow
-    chns[3] = LIGHT_MAX_VALUE - chns[3]; // yellow
   }
   
   lightChannel(0, chns[0]);
