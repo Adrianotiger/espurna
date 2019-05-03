@@ -836,6 +836,7 @@
 #define MQTT_TOPIC_SLIDER_COLOR     "sl_color"
 #define MQTT_TOPIC_SLIDER_DIRECTION "sl_dir"
 #define MQTT_TOPIC_SLIDER_NORMALIZE "sl_nor"
+#define MQTT_TOPIC_SLIDER_INVERT_PWM "sl_invpwm"
 #define MQTT_TOPIC_SLIDER_GAMMA     "sl_gamma"
 #define MQTT_TOPIC_COLOR_RGB        "rgb"
 #define MQTT_TOPIC_COLOR_HSV        "hsv"

@@ -14,7 +14,8 @@ const GET_SL_CO  = 0x0200;
 const GET_SL_DI  = 0x0400;
 const GET_SL_NOR = 0x0800;
 const GET_SL_GAM = 0x1000;
-const GET_SLIDERS= 0x1F00;
+const GET_SL_INV = 0x2000;
+const GET_SLIDERS= 0x3F00;
 const GET_ALL    = GET_RELAY | GET_TRANS | GET_BRIGHT | GET_SLIDERS;
 
 /*const YELLOW_CHANNELS = [0,3];*/
@@ -33,7 +34,8 @@ class Controller
     this.apikey = "";
     this.brightness = -1;
     this.direction = MAX_VALUE / 2;
-    this.normalized = false;
+    this.normalize = false;
+    this.invertPWM = false;
     this.transition = 0;
     this.updating = 0;
     this.channels = [-1,-1,-1,-1];
@@ -122,6 +124,7 @@ class Controller
           case "sl_color"   : Controllers.balance = parseInt(j[param]); break;
           case "sl_dir"     : this.direction = parseInt(j[param]); break;
           case "sl_nor"     : this.normalize = parseInt(j[param]) > 0; break;
+          case "sl_invpwm"  : this.invertPWM = parseInt(j[param]) > 0; break;
           case "sl_gamma"   : this.gamma = parseInt(j[param]) / 100.0; break;
           case "transition" : this.transition = parseInt(j[param]); break;
           case "channels"   : var chls = j[param];
@@ -239,6 +242,13 @@ class Controller
     {
       API.GetData(this.ip, this.apikey, "sl_nor", (a)=>{
         this.GotGetAnswer(a, "sl_nor", mask);
+      });
+    }
+    
+    if((mask & GET_SL_INV) > 0)
+    {
+      API.GetData(this.ip, this.apikey, "sl_invpwm", (a)=>{
+        this.GotGetAnswer(a, "sl_invpwm", mask);
       });
     }
     

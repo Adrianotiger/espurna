@@ -165,6 +165,8 @@ var Params = new class
     
     let inp5 = this.AddSettingParam(this.dialog, "Normalize color: ", ctrl.normalize, "checkbox");
     
+    let inp6 = this.AddSettingParam(this.dialog, "Invert PWM: ", ctrl.invertPWM, "checkbox");
+    
     var inpS = document.createElement("input");
     inpS.setAttribute("type", "button");
     inpS.setAttribute("value", "Save");

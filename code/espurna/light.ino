@@ -56,6 +56,7 @@ unsigned int _light_slider_brightness = 0;
 unsigned int _light_slider_color = 0;
 unsigned int _light_slider_direction = 0;
 int _light_slider_normalize = 1;
+int _light_slider_invert_pwm = 0;
 unsigned int _light_slider_gamma = 100;
 #endif
 
@@ -950,6 +951,14 @@ void _lightCalcChannels()
     chns[0] *= (1.0 - (double)_light_slider_color / LIGHT_MAX_VALUE); // yellow
     chns[3] *= (1.0 - (double)_light_slider_color / LIGHT_MAX_VALUE); // yellow
   }
+
+  if(_light_slider_invert_pwm)
+  {
+    chns[1] = LIGHT_MAX_VALUE - chns[1]; // white
+    chns[2] = LIGHT_MAX_VALUE - chns[2]; // white
+    chns[0] = LIGHT_MAX_VALUE - chns[0]; // yellow
+    chns[3] = LIGHT_MAX_VALUE - chns[3]; // yellow
+  }
   
   lightChannel(0, chns[0]);
   lightChannel(1, chns[1]);
@@ -998,6 +1007,7 @@ void _lightAPISetup() {
       _light_slider_color = getSetting("sldCOLOR", LIGHT_MAX_VALUE / 2).toInt();
       _light_slider_direction = getSetting("sldDIR", LIGHT_MAX_VALUE / 2).toInt();
       _light_slider_normalize = getSetting("sldNOR", 1).toInt();
+      _light_slider_invert_pwm = getSetting("sldINV", 1).toInt();
       _light_slider_gamma = getSetting("sldGAMMA", 100).toInt();
 
       apiRegister(MQTT_TOPIC_SLIDER_BRIGHT,
@@ -1035,6 +1045,16 @@ void _lightAPISetup() {
               _light_slider_normalize = atoi(payload);
               _lightCalcChannels();
               setSetting("sldNOR", _light_slider_normalize);
+          }
+      );
+
+      apiRegister(MQTT_TOPIC_SLIDER_INVERT_PWM,
+          [](char * buffer, size_t len) {
+              snprintf_P(buffer, len, PSTR("%d"), _light_slider_invert_pwm);
+          },
+          [](const char * payload) {
+              _light_slider_invert_pwm = atoi(payload);
+              setSetting("sldINV", _light_slider_invert_pwm);
           }
       );
 
